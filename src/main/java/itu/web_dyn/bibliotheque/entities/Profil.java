@@ -15,8 +15,8 @@ public class Profil {
     @Column(name = "id_profil")
     private Integer idProfil;
     
-    @Column(name = "nom_profil", nullable = false, length = 50)
-    private String nomProfil;
+    @Column(name = "nom_profil", nullable = false)
+    private Integer nomProfil;
     
     @Column(name = "quota_pret")
     private Integer quotaPret;
@@ -27,7 +27,7 @@ public class Profil {
     // Constructeurs
     public Profil() {}
     
-    public Profil(Integer idProfil, String nomProfil, Integer quotaPret, Integer quotaReservation) {
+    public Profil(Integer idProfil, Integer nomProfil, Integer quotaPret, Integer quotaReservation) {
         this.idProfil = idProfil;
         this.nomProfil = nomProfil;
         this.quotaPret = quotaPret;
@@ -43,11 +43,11 @@ public class Profil {
         this.idProfil = idProfil;
     }
     
-    public String getNomProfil() {
+    public Integer getNomProfil() {
         return nomProfil;
     }
     
-    public void setNomProfil(String nomProfil) {
+    public void setNomProfil(Integer nomProfil) {
         this.nomProfil = nomProfil;
     }
     

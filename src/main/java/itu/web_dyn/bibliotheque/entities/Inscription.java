@@ -19,11 +19,11 @@ public class Inscription {
     @Column(name = "id_inscription")
     private Integer idInscription;
     
-    @Column(name = "date_inscription")
-    private LocalDateTime dateInscription;
+    @Column(name = "date_debut")
+    private LocalDateTime dateDebut;
     
-    @Column(name = "etat")
-    private Boolean etat;
+    @Column(name = "date_fin")
+    private LocalDateTime dateFin;
     
     @ManyToOne
     @JoinColumn(name = "id_adherant", nullable = false)
@@ -32,11 +32,11 @@ public class Inscription {
     // Constructeurs
     public Inscription() {}
     
-    public Inscription(Integer idInscription, LocalDateTime dateInscription, 
-                       Boolean etat, Adherant adherant) {
+    public Inscription(Integer idInscription, LocalDateTime dateDebut, 
+                       LocalDateTime dateFin, Adherant adherant) {
         this.idInscription = idInscription;
-        this.dateInscription = dateInscription;
-        this.etat = etat;
+        this.dateDebut = dateDebut;
+        this.dateFin = dateFin;
         this.adherant = adherant;
     }
     
@@ -49,20 +49,20 @@ public class Inscription {
         this.idInscription = idInscription;
     }
     
-    public LocalDateTime getDateInscription() {
-        return dateInscription;
+    public LocalDateTime getDateDebut() {
+        return dateDebut;
     }
     
-    public void setDateInscription(LocalDateTime dateInscription) {
-        this.dateInscription = dateInscription;
+    public void setDateDebut(LocalDateTime dateDebut) {
+        this.dateDebut = dateDebut;
     }
     
-    public Boolean getEtat() {
-        return etat;
+    public LocalDateTime getDateFin() {
+        return dateFin;
     }
     
-    public void setEtat(Boolean etat) {
-        this.etat = etat;
+    public void setDateFin(LocalDateTime dateFin) {
+        this.dateFin = dateFin;
     }
     
     public Adherant getAdherant() {

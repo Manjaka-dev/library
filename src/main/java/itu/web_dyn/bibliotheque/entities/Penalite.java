@@ -23,20 +23,26 @@ public class Penalite {
     @JoinColumn(name = "id_adherant", nullable = false)
     private Adherant adherant;
     
-    @Column(name = "date_fin_penalite")
-    private LocalDateTime dateFinPenalite;
+    @Column(name = "duree")
+    private Integer duree;
     
-    @Column(name = "motif")
-    private String motif;
+    @Column(name = "date_penalite")
+    private LocalDateTime datePenalite;
     
     // Constructeurs
     public Penalite() {}
+
+    public Penalite(Adherant adherant, Integer duree, LocalDateTime datePenalite) {
+        this.adherant = adherant;
+        this.duree = duree;
+        this.datePenalite = datePenalite;
+    }
     
-    public Penalite(Integer idPenalite, Adherant adherant, LocalDateTime dateFinPenalite, String motif) {
+    public Penalite(Integer idPenalite, Adherant adherant, Integer duree, LocalDateTime datePenalite) {
         this.idPenalite = idPenalite;
         this.adherant = adherant;
-        this.dateFinPenalite = dateFinPenalite;
-        this.motif = motif;
+        this.duree = duree;
+        this.datePenalite = datePenalite;
     }
     
     // Getters et Setters
@@ -56,19 +62,19 @@ public class Penalite {
         this.adherant = adherant;
     }
     
-    public LocalDateTime getDateFinPenalite() {
-        return dateFinPenalite;
+    public Integer getDuree() {
+        return duree;
     }
     
-    public void setDateFinPenalite(LocalDateTime dateFinPenalite) {
-        this.dateFinPenalite = dateFinPenalite;
+    public void setDuree(Integer duree) {
+        this.duree = duree;
     }
     
-    public String getMotif() {
-        return motif;
+    public LocalDateTime getDatePenalite() {
+        return datePenalite;
     }
     
-    public void setMotif(String motif) {
-        this.motif = motif;
+    public void setDatePenalite(LocalDateTime datePenalite) {
+        this.datePenalite = datePenalite;
     }
 }

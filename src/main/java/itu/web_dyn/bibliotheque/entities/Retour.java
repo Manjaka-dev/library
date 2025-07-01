@@ -9,7 +9,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 @Entity
@@ -23,7 +22,7 @@ public class Retour {
     @Column(name = "date_retour")
     private LocalDateTime dateRetour;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "id_pret", nullable = false)
     private Pret pret;
 
@@ -33,10 +32,11 @@ public class Retour {
 
     public Retour() {}
 
-    public Retour(Integer idRetour, LocalDateTime dateRetour, Pret pret) {
+    public Retour(Integer idRetour, LocalDateTime dateRetour, Pret pret, TypeRetour typeRetour) {
         this.idRetour = idRetour;
         this.dateRetour = dateRetour;
         this.pret = pret;
+        this.typeRetour = typeRetour;
     }
 
     public Integer getIdRetour() {
@@ -61,6 +61,14 @@ public class Retour {
 
     public void setPret(Pret pret) {
         this.pret = pret;
+    }
+
+    public TypeRetour getTypeRetour() {
+        return typeRetour;
+    }
+
+    public void setTypeRetour(TypeRetour typeRetour) {
+        this.typeRetour = typeRetour;
     }
 
 }
