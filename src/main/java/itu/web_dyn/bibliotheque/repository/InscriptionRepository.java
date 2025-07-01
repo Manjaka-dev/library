@@ -14,7 +14,4 @@ public interface InscriptionRepository extends JpaRepository<Inscription, Intege
     
     @Query("SELECT i FROM Inscription i WHERE i.adherant.idAdherant = :adherantId")
     List<Inscription> findByAdherantId(@Param("adherantId") Integer adherantId);
-    
-    @Query("SELECT i FROM Inscription i WHERE i.etat = :etat")
-    List<Inscription> findByEtat(@Param("etat") Boolean etat);
 }

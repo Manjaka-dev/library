@@ -11,7 +11,7 @@ import org.springframework.stereotype.Repository;
 import itu.web_dyn.bibliotheque.entities.Retour;
 
 @Repository
-public interface RetourLivreRepository extends JpaRepository<Retour,Integer> {
+public interface RetourRepository extends JpaRepository<Retour,Integer> {
     List<Retour> findByDateRetourBetween(LocalDateTime debut, LocalDateTime fin);
     
     // Recherche par type de retour
