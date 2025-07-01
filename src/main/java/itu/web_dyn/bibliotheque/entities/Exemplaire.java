@@ -10,7 +10,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "examplaire")
+@Table(name = "exemplaire")
 public class Exemplaire {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,16 +21,12 @@ public class Exemplaire {
     @JoinColumn(name = "id_livre", nullable = false)
     private Livre livre;
     
-    @Column(name = "dispo")
-    private Boolean dispo;
-    
     // Constructeurs
     public Exemplaire() {}
     
-    public Exemplaire(Integer idExemplaire, Livre livre, Boolean dispo) {
+    public Exemplaire(Integer idExemplaire, Livre livre) {
         this.idExemplaire = idExemplaire;
         this.livre = livre;
-        this.dispo = dispo;
     }
     
     // Getters et Setters
@@ -48,13 +44,5 @@ public class Exemplaire {
     
     public void setLivre(Livre livre) {
         this.livre = livre;
-    }
-    
-    public Boolean getDispo() {
-        return dispo;
-    }
-    
-    public void setDispo(Boolean dispo) {
-        this.dispo = dispo;
     }
 }

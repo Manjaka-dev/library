@@ -27,7 +27,7 @@ public class Reservation {
     private Admin admin;
     
     @ManyToOne
-    @JoinColumn(name = "id_statut", nullable = false)
+    @JoinColumn(name = "id_statut_reservation", nullable = false)
     private StatutReservation statut;
     
     @ManyToOne

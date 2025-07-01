@@ -15,13 +15,13 @@ public class Categorie {
     @Column(name = "id_categorie")
     private Integer idCategorie;
     
-    @Column(name = "nom_categorie", nullable = false, length = 50)
-    private String nomCategorie;
+    @Column(name = "nom_categorie", nullable = false)
+    private Integer nomCategorie;
     
     // Constructeurs
     public Categorie() {}
     
-    public Categorie(Integer idCategorie, String nomCategorie) {
+    public Categorie(Integer idCategorie, Integer nomCategorie) {
         this.idCategorie = idCategorie;
         this.nomCategorie = nomCategorie;
     }
@@ -35,11 +35,11 @@ public class Categorie {
         this.idCategorie = idCategorie;
     }
     
-    public String getNomCategorie() {
+    public Integer getNomCategorie() {
         return nomCategorie;
     }
     
-    public void setNomCategorie(String nomCategorie) {
+    public void setNomCategorie(Integer nomCategorie) {
         this.nomCategorie = nomCategorie;
     }
 }

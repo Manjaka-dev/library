@@ -22,7 +22,7 @@ public interface ReservationRepository extends JpaRepository<Reservation, Intege
     @Query("SELECT r FROM Reservation r WHERE r.admin.idAdmin = :adminId")
     List<Reservation> findByAdminId(@Param("adminId") Integer adminId);
     
-    @Query("SELECT r FROM Reservation r WHERE r.statut.idStatut = :statutId")
+    @Query("SELECT r FROM Reservation r WHERE r.statut.idStatutReservation = :statutId")
     List<Reservation> findByStatutId(@Param("statutId") Integer statutId);
     
     @Query("SELECT r FROM Reservation r WHERE r.dateDeReservation BETWEEN :dateDebut AND :dateFin")

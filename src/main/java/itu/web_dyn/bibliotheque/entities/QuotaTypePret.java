@@ -9,7 +9,7 @@ import jakarta.persistence.MapsId;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "quotq_type_pret")
+@Table(name = "quota_type_pret")
 public class QuotaTypePret {
     @EmbeddedId
     private QuotaTypePretId id;
