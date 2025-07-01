@@ -47,6 +47,15 @@
                     <li class="nav-item">
                         <a class="nav-link" href="/livres">Livres</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/auteurs">Auteurs</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/editeurs">Éditeurs</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/categories">Catégories</a>
+                    </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown">
                             Administration
@@ -143,7 +152,43 @@
                         <div class="text-center">
                             <i class="fas fa-book fa-4x mb-3"></i>
                             <h4>Gestion des Livres</h4>
-                            <p>Catalogue, auteurs, éditeurs, catégories</p>
+                            <p>Catalogue, gestion des ouvrages</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-4 mb-3">
+                <a href="/auteurs" class="text-decoration-none">
+                    <div class="card menu-card border-0 shadow-sm bg-info text-white">
+                        <div class="text-center">
+                            <i class="fas fa-pen-fancy fa-4x mb-3"></i>
+                            <h4>Gestion des Auteurs</h4>
+                            <p>Ajouter, modifier les auteurs</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+        
+        <div class="row mb-4">
+            <div class="col-md-4 mb-3">
+                <a href="/editeurs" class="text-decoration-none">
+                    <div class="card menu-card border-0 shadow-sm bg-warning text-white">
+                        <div class="text-center">
+                            <i class="fas fa-building fa-4x mb-3"></i>
+                            <h4>Gestion des Éditeurs</h4>
+                            <p>Ajouter, modifier les maisons d'édition</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-4 mb-3">
+                <a href="/categories" class="text-decoration-none">
+                    <div class="card menu-card border-0 shadow-sm bg-secondary text-white">
+                        <div class="text-center">
+                            <i class="fas fa-tags fa-4x mb-3"></i>
+                            <h4>Gestion des Catégories</h4>
+                            <p>Organiser les livres par catégories</p>
                         </div>
                     </div>
                 </a>
