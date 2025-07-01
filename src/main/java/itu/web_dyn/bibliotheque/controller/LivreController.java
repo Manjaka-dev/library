@@ -13,9 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import itu.web_dyn.bibliotheque.entities.Auteur;
 import itu.web_dyn.bibliotheque.entities.Categorie;
-import itu.web_dyn.bibliotheque.entities.Editeur;
 import itu.web_dyn.bibliotheque.entities.Livre;
 import itu.web_dyn.bibliotheque.repository.AuteurRepository;
 import itu.web_dyn.bibliotheque.repository.CategorieRepository;

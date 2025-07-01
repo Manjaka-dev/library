@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import itu.web_dyn.bibliotheque.entities.Adherant;
-import itu.web_dyn.bibliotheque.entities.Profil;
 import itu.web_dyn.bibliotheque.repository.AdherantRepository;
 import itu.web_dyn.bibliotheque.repository.ProfilRepository;
 
