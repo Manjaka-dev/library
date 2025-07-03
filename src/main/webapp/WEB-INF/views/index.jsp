@@ -53,11 +53,6 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/prets/new">
-                            <i class="fas fa-handshake"></i> Nouveau Prêt
-                        </a>
-                    </li>
-                    <li class="nav-item">
                         <a class="nav-link" href="/auteurs">Auteurs</a>
                     </li>
                     <li class="nav-item">
@@ -261,6 +256,12 @@
                 <a href="/livres/new" class="btn btn-outline-success btn-lg w-100">
                     <i class="fas fa-book-open mb-2"></i><br>
                     Nouveau Livre
+                </a>
+            </div>
+            <div class="col-md-3 mb-3">
+                <a href="/prets/new" class="btn btn-outline-primary btn-lg w-100">
+                    <i class="fas fa-handshake mb-2"></i><br>
+                    Nouveau Prêt
                 </a>
             </div>
             <div class="col-md-3 mb-3">
