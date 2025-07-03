@@ -1,5 +1,7 @@
 package itu.web_dyn.bibliotheque.entities;
 
+import java.time.LocalDate;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -25,6 +27,9 @@ public class Adherant {
     
     @Column(name = "password", length = 50)
     private String password;
+
+    @Column(name = "date_naissance")
+    private LocalDate dateNaissance;
     
     @ManyToOne
     @JoinColumn(name = "id_profil", nullable = false)
@@ -81,5 +86,13 @@ public class Adherant {
     
     public void setProfil(Profil profil) {
         this.profil = profil;
+    }
+
+    public LocalDate getDateNaissance() {
+        return dateNaissance;
+    }
+
+    public void setDateNaissance(LocalDate dateNaissance) {
+        this.dateNaissance = dateNaissance;
     }
 }

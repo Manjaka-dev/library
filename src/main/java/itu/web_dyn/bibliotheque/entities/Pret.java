@@ -51,6 +51,15 @@ public class Pret {
         this.adherant = adherant;
     }
     
+    public Pret(LocalDateTime dateDebut, Admin admin, 
+                TypePret typePret, Exemplaire exemplaire, Adherant adherant) {
+        this.dateDebut = dateDebut;
+        this.admin = admin;
+        this.typePret = typePret;
+        this.exemplaire = exemplaire;
+        this.adherant = adherant;
+    }
+    
     // Getters et Setters
     public Integer getIdPret() {
         return idPret;
