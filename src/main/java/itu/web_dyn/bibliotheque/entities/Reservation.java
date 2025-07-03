@@ -27,10 +27,6 @@ public class Reservation {
     private Admin admin;
     
     @ManyToOne
-    @JoinColumn(name = "id_statut_reservation", nullable = false)
-    private StatutReservation statut;
-    
-    @ManyToOne
     @JoinColumn(name = "id_exemplaire", nullable = false)
     private Exemplaire exemplaire;
     
@@ -38,18 +34,32 @@ public class Reservation {
     @JoinColumn(name = "id_adherant", nullable = false)
     private Adherant adherant;
     
+    @ManyToOne
+    @JoinColumn(name = "id_statut_reservation", nullable = false)
+    private StatutReservation statut;
+    
     // Constructeurs
     public Reservation() {}
     
     public Reservation(Integer idReservation, LocalDateTime dateDeReservation, 
-                       Admin admin, StatutReservation statut, Exemplaire exemplaire, 
-                       Adherant adherant) {
+                       Admin admin, Exemplaire exemplaire, 
+                       Adherant adherant, StatutReservation statut) {
         this.idReservation = idReservation;
         this.dateDeReservation = dateDeReservation;
         this.admin = admin;
-        this.statut = statut;
         this.exemplaire = exemplaire;
         this.adherant = adherant;
+        this.statut = statut;
+    }
+
+    public Reservation(LocalDateTime dateDeReservation, 
+                       Admin admin, Exemplaire exemplaire, 
+                       Adherant adherant, StatutReservation statut) {
+        this.dateDeReservation = dateDeReservation;
+        this.admin = admin;
+        this.exemplaire = exemplaire;
+        this.adherant = adherant;
+        this.statut = statut;
     }
     
     // Getters et Setters
@@ -77,14 +87,6 @@ public class Reservation {
         this.admin = admin;
     }
     
-    public StatutReservation getStatut() {
-        return statut;
-    }
-    
-    public void setStatut(StatutReservation statut) {
-        this.statut = statut;
-    }
-    
     public Exemplaire getExemplaire() {
         return exemplaire;
     }
@@ -99,5 +101,13 @@ public class Reservation {
     
     public void setAdherant(Adherant adherant) {
         this.adherant = adherant;
+    }
+    
+    public StatutReservation getStatut() {
+        return statut;
+    }
+    
+    public void setStatut(StatutReservation statut) {
+        this.statut = statut;
     }
 }

@@ -5,26 +5,26 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import itu.web_dyn.bibliotheque.entities.FinPret;
 import itu.web_dyn.bibliotheque.entities.Pret;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
 public interface PretRepository extends JpaRepository<Pret, Integer> {
+
+    @Query("""
+        SELECT COUNT(p) FROM Pret p
+        WHERE p.adherant.idAdherant = :idAdherant
+          AND p.typePret.idTypePret = :idTypePret
+          AND p.idPret NOT IN (SELECT f.pret.idPret FROM FinPret f)
+        """)
+    int countPretsEnCours(@Param("idAdherant") Integer idAdherant, @Param("idTypePret") Integer idTypePret);
+
+    @Query(value = "SELECT * FROM fin_pret f WHERE f.id_pret = :idPret ORDER BY date_fin ASC limit 1",  nativeQuery = true)
+    FinPret findByIdPret(@Param("idPret") Integer id_pret);
+
+    @Query(value = "SELECT * FROM pret p WHERE p.id_exemplaire = :idExemplaire", nativeQuery = true)
+    List<Pret> findByIdExemplaire(@Param("idExemplaire") Integer id_exemplaire);
     
-    @Query("SELECT p FROM Pret p WHERE p.adherant.idAdherant = :adherantId")
-    List<Pret> findByAdherantId(@Param("adherantId") Integer adherantId);
-    
-    @Query("SELECT p FROM Pret p WHERE p.exemplaire.idExemplaire = :exemplaireId")
-    List<Pret> findByExemplaireId(@Param("exemplaireId") Integer exemplaireId);
-    
-    @Query("SELECT p FROM Pret p WHERE p.admin.idAdmin = :adminId")
-    List<Pret> findByAdminId(@Param("adminId") Integer adminId);
-    
-    @Query("SELECT p FROM Pret p WHERE p.dateDebut BETWEEN :dateDebut AND :dateFin")
-    List<Pret> findByDateDebutBetween(@Param("dateDebut") LocalDateTime dateDebut, @Param("dateFin") LocalDateTime dateFin);
-    
-    @Query("SELECT p FROM Pret p WHERE p.typePret.idTypePret = :typePretId")
-    List<Pret> findByTypePretId(@Param("typePretId") Integer typePretId);
 }

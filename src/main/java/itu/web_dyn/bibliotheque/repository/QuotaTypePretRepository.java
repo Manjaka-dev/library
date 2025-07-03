@@ -18,4 +18,7 @@ public interface QuotaTypePretRepository extends JpaRepository<QuotaTypePret, Qu
     
     @Query("SELECT qtp FROM QuotaTypePret qtp WHERE qtp.typePret.idTypePret = :typePretId")
     List<QuotaTypePret> findByTypePretId(@Param("typePretId") Integer typePretId);
+
+    @Query(value = "SELECT quota FROM quota_type_pret WHERE id_profil = :idProfil AND id_type_pret = :idTypePret", nativeQuery = true)
+    Integer findQuota(@Param("idProfil") Integer idProfil, @Param("idTypePret") Integer idTypePret);
 }

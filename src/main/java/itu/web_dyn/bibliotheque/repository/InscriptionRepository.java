@@ -7,11 +7,8 @@ import org.springframework.stereotype.Repository;
 
 import itu.web_dyn.bibliotheque.entities.Inscription;
 
-import java.util.List;
-
 @Repository
 public interface InscriptionRepository extends JpaRepository<Inscription, Integer> {
-    
-    @Query("SELECT i FROM Inscription i WHERE i.adherant.idAdherant = :adherantId")
-    List<Inscription> findByAdherantId(@Param("adherantId") Integer adherantId);
+    @Query(value = "SELECT * FROM inscription WHERE id_adherant = :adherantId ORDER BY date_debut DESC LIMIT 1", nativeQuery = true)
+    Inscription findLastByAdherantId(@Param("adherantId") Integer adherantId);
 }

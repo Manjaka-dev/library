@@ -48,6 +48,16 @@
                         <a class="nav-link" href="/livres">Livres</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="/prets">
+                            <i class="fas fa-handshake"></i> Prêts
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/prets/new">
+                            <i class="fas fa-handshake"></i> Nouveau Prêt
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="/auteurs">Auteurs</a>
                     </li>
                     <li class="nav-item">
@@ -194,6 +204,17 @@
                             <i class="fas fa-tags fa-4x mb-3"></i>
                             <h4>Gestion des Catégories</h4>
                             <p>Organiser les livres par catégories</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-4 mb-3">
+                <a href="/prets" class="text-decoration-none">
+                    <div class="card menu-card border-0 shadow-sm bg-dark text-white">
+                        <div class="text-center">
+                            <i class="fas fa-handshake fa-4x mb-3"></i>
+                            <h4>Gestion des Prêts</h4>
+                            <p>Créer et suivre les prêts de livres</p>
                         </div>
                     </div>
                 </a>
