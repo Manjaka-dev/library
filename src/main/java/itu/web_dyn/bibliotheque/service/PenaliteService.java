@@ -3,6 +3,8 @@ package itu.web_dyn.bibliotheque.service;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +22,6 @@ import itu.web_dyn.bibliotheque.repository.RetourRepository;
 
 @Service
 public class PenaliteService {
-
     @Autowired
     private PretRepository pretRepository;
 
@@ -36,7 +37,27 @@ public class PenaliteService {
     @Autowired
     private AdherantRepository adherantRepository;
 
-    public void calculPenalite(Integer idPret) throws Exception{
+    public List<Penalite> findAll() {
+        return penaliteRepository.findAll();
+    }
+
+    public Optional<Penalite> findById(Integer id) {
+        return penaliteRepository.findById(id);
+    }
+
+    public List<Penalite> findByAdherantId(Integer idAdherant) {
+        return penaliteRepository.findByAdherantIdAdherant(idAdherant);
+    }
+
+    public Penalite save(Penalite penalite) {
+        return penaliteRepository.save(penalite);
+    }
+
+    public void deleteById(Integer id) {
+        penaliteRepository.deleteById(id);
+    }
+
+    public void calculPenalite(Integer idPret) throws Exception {
         Pret pret = pretRepository.findById(idPret).orElse(null);
         Penalite penalite = null;
         if (pret != null) {
@@ -66,14 +87,15 @@ public class PenaliteService {
         }
     }
 
-    public boolean asPenalite(LocalDateTime date, Integer idAdherant){
-        Penalite lastpenalite = penaliteRepository.findByAdherant(adherantRepository.findById(idAdherant).orElse(null))
-        .stream()
-        .sorted(Comparator.comparing(penalite -> penalite.getDatePenalite().plusDays(penalite.getDuree())))
-        .collect(Collectors.toList()).getFirst();
-        if (lastpenalite.getDatePenalite().plusDays(lastpenalite.getDuree()).isAfter(date)) {
-            return true;
+    public boolean isPenalise(LocalDateTime date, Integer idAdherant){
+        List<Penalite> penalites = penaliteRepository.findByAdherant(adherantRepository.findById(idAdherant).orElse(null));
+        if (penalites.isEmpty()) {
+            return false;
         }
-        return false;
+        Penalite lastpenalite = penalites.stream()
+            .sorted(Comparator.comparing(penalite -> penalite.getDatePenalite().plusDays(penalite.getDuree())))
+            .collect(Collectors.toList())
+            .getFirst();
+        return lastpenalite.getDatePenalite().plusDays(lastpenalite.getDuree()).isAfter(date);
     }
 }
