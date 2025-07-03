@@ -56,6 +56,11 @@
                     <li class="nav-item">
                         <a class="nav-link" href="/categories">Catégories</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/Prolongement">
+                            <i class="fas fa-clock"></i> Prolongements
+                        </a>
+                    </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown">
                             Administration
@@ -189,6 +194,17 @@
                             <i class="fas fa-tags fa-4x mb-3"></i>
                             <h4>Gestion des Catégories</h4>
                             <p>Organiser les livres par catégories</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-4 mb-3">
+                <a href="/Prolongement" class="text-decoration-none">
+                    <div class="card menu-card border-0 shadow-sm bg-gradient text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        <div class="text-center">
+                            <i class="fas fa-clock fa-4x mb-3"></i>
+                            <h4>Prolongement de Prêt</h4>
+                            <p>Prolonger la durée des prêts</p>
                         </div>
                     </div>
                 </a>
