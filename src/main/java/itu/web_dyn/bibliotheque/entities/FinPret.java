@@ -34,6 +34,11 @@ public class FinPret {
         this.dateFin = dateFin;
         this.pret = pret;
     }
+
+    public FinPret (LocalDateTime dateFin, Pret pret){
+        this.dateFin = dateFin;
+        this.pret = pret;
+    }
     
     // Getters et Setters
     public Integer getIdFinPret() {
