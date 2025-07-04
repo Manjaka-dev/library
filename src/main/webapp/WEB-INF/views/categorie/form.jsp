@@ -24,10 +24,9 @@
                             
                             <div class="mb-3">
                                 <label for="nomCategorie" class="form-label">Nom de la Catégorie *</label>
-                                <input type="number" class="form-control" id="nomCategorie" name="nomCategorie" 
+                                <input type="text" class="form-control" id="nomCategorie" name="nomCategorie" 
                                        value="${categorie.nomCategorie}" required
-                                       placeholder="Entrez un identifiant numérique pour la catégorie">
-                                <div class="form-text">Note: Le nom de catégorie est un identifiant numérique selon votre schéma de base de données.</div>
+                                       placeholder="Ex: Science">
                             </div>
                             
                             <div class="d-flex justify-content-between">

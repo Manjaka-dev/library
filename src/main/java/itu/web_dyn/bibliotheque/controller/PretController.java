@@ -16,6 +16,7 @@ import itu.web_dyn.bibliotheque.entities.Adherant;
 import itu.web_dyn.bibliotheque.entities.Exemplaire;
 import itu.web_dyn.bibliotheque.entities.Livre;
 import itu.web_dyn.bibliotheque.entities.Pret;
+import itu.web_dyn.bibliotheque.repository.DureePretRepository;
 import itu.web_dyn.bibliotheque.service.AdherantService;
 import itu.web_dyn.bibliotheque.service.AdminService;
 import itu.web_dyn.bibliotheque.service.ExemplaireService;
@@ -46,6 +47,8 @@ public class PretController {
     private AdminService adminService; 
     @Autowired
     private PenaliteService penaliteService;
+    @Autowired
+    private DureePretRepository dureePretRepository;
 
     private void preparePretPage(Model model) {
         model.addAttribute("livres", livreService.findAll());
@@ -72,8 +75,7 @@ public class PretController {
     @PostMapping("/save")
     public String creerPret(@RequestParam("adherantId") int adherantId,
                            @RequestParam("typePret") int typePretId,  
-                           @RequestParam("livre") int livreId,
-                           @RequestParam("dateFin") LocalDate dateFin, Model model) {
+                           @RequestParam("livre") int livreId, Model model) {
         Adherant adherant = adherantService.findById(adherantId);
         Livre livre = livreService.findById(livreId);
         List<Exemplaire> exemplaires = livreService.findAllExemplaireByIdLivre(livre.getIdLivre());
@@ -103,7 +105,10 @@ public class PretController {
             }
 
             // 4. L'exemplaire doit être disponible (pas déjà prêté)
-            Boolean disponible = exemplaireService.isExemplaireDisponible(exemplaire.getIdExemplaire(), LocalDateTime.now(), UtilService.toDateTimeWithCurrentTime(dateFin));
+            Boolean disponible = exemplaireService.isExemplaireDisponible(
+                exemplaire.getIdExemplaire(),
+                LocalDateTime.now(),
+                UtilService.toDateTimeWithCurrentTime(LocalDate.now().plusDays(dureePretRepository.findAll().getLast().getDuree())));
             if (!disponible) {
                 model.addAttribute("message", "Exemplaire n°" + exemplaire.getIdExemplaire() + " non disponible.");
                 preparePretPage(model);
