@@ -35,6 +35,10 @@ public class ReservationService {
         reservationRepository.save(reservation);
     }
 
+    public void deleteById(Integer id){
+        reservationRepository.deleteById(id);
+    }
+
     public void reserverUnLivre(Integer id_adherant,Integer id_livre,LocalDateTime dateTime){
         Reservation resa = new Reservation(id_livre, dateTime, null, statutReservationService.findById(1), livreService.findById(id_livre), adherantService.findById(id_adherant));
         save(resa);

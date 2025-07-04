@@ -28,6 +28,13 @@
             color: inherit;
             transform: scale(1.05);
         }
+        .bg-outline {
+            background-color: #f8f9fa;
+            border: 2px solid #6c757d;
+        }
+        .bg-outline:hover {
+            background-color: #e9ecef;
+        }
     </style>
 </head>
 <body class="bg-light">
@@ -64,6 +71,16 @@
                     <li class="nav-item">
                         <a class="nav-link" href="/Prolongement">
                             <i class="fas fa-clock"></i> Prolongements
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/reservations">
+                            <i class="fas fa-calendar-check"></i> Réservations
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/retours">
+                            <i class="fas fa-undo"></i> Retours
                         </a>
                     </li>
                     <li class="nav-item dropdown">
@@ -168,12 +185,12 @@
                 </a>
             </div>
             <div class="col-md-4 mb-3">
-                <a href="/auteurs" class="text-decoration-none">
-                    <div class="card menu-card border-0 shadow-sm bg-info text-white">
+                <a href="/prets" class="text-decoration-none">
+                    <div class="card menu-card border-0 shadow-sm bg-dark text-white">
                         <div class="text-center">
-                            <i class="fas fa-pen-fancy fa-4x mb-3"></i>
-                            <h4>Gestion des Auteurs</h4>
-                            <p>Ajouter, modifier les auteurs</p>
+                            <i class="fas fa-handshake fa-4x mb-3"></i>
+                            <h4>Gestion des Prêts</h4>
+                            <p>Créer et suivre les prêts de livres</p>
                         </div>
                     </div>
                 </a>
@@ -182,34 +199,23 @@
         
         <div class="row mb-4">
             <div class="col-md-4 mb-3">
-                <a href="/editeurs" class="text-decoration-none">
-                    <div class="card menu-card border-0 shadow-sm bg-warning text-white">
+                <a href="/reservations" class="text-decoration-none">
+                    <div class="card menu-card border-0 shadow-sm bg-info text-white">
                         <div class="text-center">
-                            <i class="fas fa-building fa-4x mb-3"></i>
-                            <h4>Gestion des Éditeurs</h4>
-                            <p>Ajouter, modifier les maisons d'édition</p>
+                            <i class="fas fa-calendar-check fa-4x mb-3"></i>
+                            <h4>Gestion des Réservations</h4>
+                            <p>Réserver et gérer les réservations</p>
                         </div>
                     </div>
                 </a>
             </div>
             <div class="col-md-4 mb-3">
-                <a href="/categories" class="text-decoration-none">
-                    <div class="card menu-card border-0 shadow-sm bg-secondary text-white">
+                <a href="/retours" class="text-decoration-none">
+                    <div class="card menu-card border-0 shadow-sm bg-danger text-white">
                         <div class="text-center">
-                            <i class="fas fa-tags fa-4x mb-3"></i>
-                            <h4>Gestion des Catégories</h4>
-                            <p>Organiser les livres par catégories</p>
-                        </div>
-                    </div>
-                </a>
-            </div>
-            <div class="col-md-4 mb-3">
-                <a href="/prets" class="text-decoration-none">
-                    <div class="card menu-card border-0 shadow-sm bg-dark text-white">
-                        <div class="text-center">
-                            <i class="fas fa-handshake fa-4x mb-3"></i>
-                            <h4>Gestion des Prêts</h4>
-                            <p>Créer et suivre les prêts de livres</p>
+                            <i class="fas fa-undo fa-4x mb-3"></i>
+                            <h4>Gestion des Retours</h4>
+                            <p>Traiter les retours de livres</p>
                         </div>
                     </div>
                 </a>
@@ -225,9 +231,48 @@
                     </div>
                 </a>
             </div>
+        </div>
+        
+        <div class="row mb-4">
+            <div class="col-md-4 mb-3">
+                <a href="/auteurs" class="text-decoration-none">
+                    <div class="card menu-card border-0 shadow-sm bg-secondary text-white">
+                        <div class="text-center">
+                            <i class="fas fa-pen-fancy fa-4x mb-3"></i>
+                            <h4>Gestion des Auteurs</h4>
+                            <p>Ajouter, modifier les auteurs</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-4 mb-3">
+                <a href="/editeurs" class="text-decoration-none">
+                    <div class="card menu-card border-0 shadow-sm bg-warning text-white">
+                        <div class="text-center">
+                            <i class="fas fa-building fa-4x mb-3"></i>
+                            <h4>Gestion des Éditeurs</h4>
+                            <p>Ajouter, modifier les maisons d'édition</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-4 mb-3">
+                <a href="/categories" class="text-decoration-none">
+                    <div class="card menu-card border-0 shadow-sm bg-outline text-dark">
+                        <div class="text-center">
+                            <i class="fas fa-tags fa-4x mb-3"></i>
+                            <h4>Gestion des Catégories</h4>
+                            <p>Organiser les livres par catégories</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+        
+        <div class="row mb-4">
             <div class="col-md-4 mb-3">
                 <a href="/admin/dashboard" class="text-decoration-none">
-                    <div class="card menu-card border-0 shadow-sm bg-warning text-white">
+                    <div class="card menu-card border-0 shadow-sm bg-dark text-white">
                         <div class="text-center">
                             <i class="fas fa-cogs fa-4x mb-3"></i>
                             <h4>Administration</h4>
@@ -265,15 +310,9 @@
                 </a>
             </div>
             <div class="col-md-3 mb-3">
-                <a href="/admin/auteurs/new" class="btn btn-outline-info btn-lg w-100">
-                    <i class="fas fa-pen mb-2"></i><br>
-                    Nouvel Auteur
-                </a>
-            </div>
-            <div class="col-md-3 mb-3">
-                <a href="/admin/editeurs/new" class="btn btn-outline-warning btn-lg w-100">
-                    <i class="fas fa-building mb-2"></i><br>
-                    Nouvel Éditeur
+                <a href="/reservations/new" class="btn btn-outline-info btn-lg w-100">
+                    <i class="fas fa-calendar-check mb-2"></i><br>
+                    Nouvelle Réservation
                 </a>
             </div>
         </div>
