@@ -65,12 +65,6 @@
                                 </select>
                             </div>
 
-                            <div class="mb-3">
-                                <label for="dateFin" class="form-label">Date de fin du prêt *</label>
-                                <input type="date" class="form-control" id="dateFin" name="dateFin" required>
-                                <div class="form-text">Sélectionnez la date de fin prévue pour ce prêt.</div>
-                            </div>
-
                             <div class="d-flex justify-content-between">
                                 <a href="/" class="btn btn-secondary">
                                     <i class="fas fa-arrow-left"></i> Retour
@@ -91,16 +85,13 @@
     <script>
         // Définir la date minimale à aujourd'hui
         document.addEventListener('DOMContentLoaded', function() {
-            const dateInput = document.getElementById('dateFin');
             const today = new Date();
             const tomorrow = new Date(today);
             tomorrow.setDate(tomorrow.getDate() + 1);
-            dateInput.min = tomorrow.toISOString().split('T')[0];
             
             // Définir une date par défaut (14 jours plus tard)
             const defaultDate = new Date(today);
             defaultDate.setDate(defaultDate.getDate() + 14);
-            dateInput.value = defaultDate.toISOString().split('T')[0];
         });
     </script>
 </body>
