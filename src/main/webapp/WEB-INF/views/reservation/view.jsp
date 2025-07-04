@@ -61,17 +61,17 @@
                                         <h6 class="text-muted">Statut</h6>
                                         <p>
                                             <c:choose>
-                                                <c:when test="${reservation.statutReservation.nomStatut == 'En attente'}">
-                                                    <span class="badge bg-warning fs-6">${reservation.statutReservation.nomStatut}</span>
+                                                <c:when test="${reservation.statut.nomStatut == 'En attente'}">
+                                                    <span class="badge bg-warning fs-6">${reservation.statut.nomStatut}</span>
                                                 </c:when>
-                                                <c:when test="${reservation.statutReservation.nomStatut == 'Confirmée'}">
-                                                    <span class="badge bg-success fs-6">${reservation.statutReservation.nomStatut}</span>
+                                                <c:when test="${reservation.statut.nomStatut == 'Confirmée'}">
+                                                    <span class="badge bg-success fs-6">${reservation.statut.nomStatut}</span>
                                                 </c:when>
-                                                <c:when test="${reservation.statutReservation.nomStatut == 'Annulée'}">
-                                                    <span class="badge bg-danger fs-6">${reservation.statutReservation.nomStatut}</span>
+                                                <c:when test="${reservation.statut.nomStatut == 'Annulée'}">
+                                                    <span class="badge bg-danger fs-6">${reservation.statut.nomStatut}</span>
                                                 </c:when>
                                                 <c:otherwise>
-                                                    <span class="badge bg-secondary fs-6">${reservation.statutReservation.nomStatut}</span>
+                                                    <span class="badge bg-secondary fs-6">${reservation.statut.nomStatut}</span>
                                                 </c:otherwise>
                                             </c:choose>
                                         </p>
