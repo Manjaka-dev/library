@@ -61,7 +61,7 @@ public class PenaliteService {
         Pret pret = pretRepository.findById(idPret).orElse(null);
         Penalite penalite = null;
         if (pret != null) {
-            FinPret finPret = finPretRepository.findByPretId(pret.getIdPret()).getFirst();
+            FinPret finPret = finPretRepository.findByPretId(pret.getIdPret()).getLast();
             Retour retour = retourRepository.findByPret_IdPret(pret.getIdPret());
             if (retour !=null && finPret != null) {
                 if (retour.getDateRetour().isAfter(finPret.getDateFin())) {
@@ -89,7 +89,7 @@ public class PenaliteService {
 
     public boolean isPenalise(LocalDateTime date, Integer idAdherant){
         List<Penalite> penalites = penaliteRepository.findByAdherant(adherantRepository.findById(idAdherant).orElse(null));
-        if (penalites.isEmpty()) {
+        if ( penalites == null || penalites.isEmpty()) {
             return false;
         }
         Penalite lastpenalite = penalites.stream()

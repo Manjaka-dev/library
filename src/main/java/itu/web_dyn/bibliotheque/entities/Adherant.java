@@ -21,6 +21,9 @@ public class Adherant {
     
     @Column(name = "nom_adherant", length = 50)
     private String nomAdherant;
+
+    @Column(name = "numero_adherant", length = 4, unique = true, nullable = false)
+    private int numeroAdherant;
     
     @Column(name = "prenom_adherant", length = 50)
     private String prenomAdherant;
@@ -38,10 +41,11 @@ public class Adherant {
     // Constructeurs
     public Adherant() {}
     
-    public Adherant(Integer idAdherant, String nomAdherant, String prenomAdherant, 
+    public Adherant(Integer idAdherant, int numero_adherant, String nomAdherant, String prenomAdherant, 
                     String password, Profil profil) {
         this.idAdherant = idAdherant;
         this.nomAdherant = nomAdherant;
+        this.numeroAdherant = numero_adherant;
         this.prenomAdherant = prenomAdherant;
         this.password = password;
         this.profil = profil;
@@ -95,4 +99,14 @@ public class Adherant {
     public void setDateNaissance(LocalDate dateNaissance) {
         this.dateNaissance = dateNaissance;
     }
+
+    public int getNumeroAdherant() {
+        return numeroAdherant;
+    }
+
+    public void setNumeroAdherant(int numeroAdherant) {
+        this.numeroAdherant = numeroAdherant;
+    }
+
+    
 }

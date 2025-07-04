@@ -19,10 +19,6 @@ public class AdherantService {
     @Autowired 
     private InscriptionRepository inscriptionRepository;
 
-    @Autowired
-    private ProfilService profilService;
-
-
     public Adherant findById(Integer id){
         return adherantRepository.findById(id).get();
     }

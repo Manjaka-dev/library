@@ -19,6 +19,8 @@ import itu.web_dyn.bibliotheque.repository.AuteurRepository;
 import itu.web_dyn.bibliotheque.repository.CategorieRepository;
 import itu.web_dyn.bibliotheque.repository.EditeurRepository;
 import itu.web_dyn.bibliotheque.repository.LivreRepository;
+import itu.web_dyn.bibliotheque.service.CategorieService;
+import itu.web_dyn.bibliotheque.service.LivreService;
 
 @Controller
 @RequestMapping("/livres")
@@ -35,6 +37,12 @@ public class LivreController {
     
     @Autowired
     private CategorieRepository categorieRepository;
+
+    @Autowired
+    private LivreService livreService;
+
+    @Autowired
+    private CategorieService categorieService;
 
     // Liste des livres
     @GetMapping
@@ -103,5 +111,16 @@ public class LivreController {
             return "livre/view";
         }
         return "redirect:/livres";
+    }
+
+    @GetMapping("/list")
+    public String livres(Model model) {
+        List<Livre> livres = livreService.findAll();
+        List<Categorie> categories = categorieService.findAll();
+        
+        model.addAttribute("livres", livres);
+        model.addAttribute("categories", categories);
+
+        return "listLivre"; // Redirection vers la page des livres
     }
 }
