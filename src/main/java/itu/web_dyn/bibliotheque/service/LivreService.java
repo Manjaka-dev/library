@@ -40,6 +40,10 @@ public class LivreService {
         livreRepository.save(livre);
     }
 
+    public void deleteById(Integer id) {
+        livreRepository.deleteById(id);
+    }
+
     public List<Exemplaire> findAllExemplaireByIdLivre(Integer idLivre) {
         return exemplaireRepository.findByLivreIdLivre(idLivre);
     }

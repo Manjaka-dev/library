@@ -3,6 +3,8 @@ package itu.web_dyn.bibliotheque.controller;
 import java.util.HashSet;
 import java.util.List;
 
+import jakarta.servlet.http.HttpSession;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import itu.web_dyn.bibliotheque.entities.Adherant;
 import itu.web_dyn.bibliotheque.entities.Categorie;
 import itu.web_dyn.bibliotheque.entities.Livre;
 import itu.web_dyn.bibliotheque.repository.AuteurRepository;
@@ -102,12 +105,27 @@ public class LivreController {
         return "redirect:/livres";
     }
 
-    // Détails
+    // Détails d'un livre avec gestion des permissions
     @GetMapping("/view/{id}")
-    public String viewLivre(@PathVariable Integer id, Model model) {
+    public String viewLivre(@PathVariable Integer id, Model model, HttpSession session) {
         Livre livre = livreRepository.findById(id).orElse(null);
         if (livre != null) {
             model.addAttribute("livre", livre);
+            
+            // Récupérer le type d'utilisateur depuis la session
+            String userType = (String) session.getAttribute("userType");
+            model.addAttribute("userType", userType);
+            
+            // Si c'est un adhérent, vérifier s'il peut emprunter ce livre
+            if ("adherant".equals(userType)) {
+                Adherant adherant = (Adherant) session.getAttribute("user");
+                if (adherant != null) {
+                    boolean peutPreter = livreService.peutPreterLivre(adherant, livre);
+                    model.addAttribute("peutPreter", peutPreter);
+                    model.addAttribute("adherant", adherant);
+                }
+            }
+            
             return "livre/view";
         }
         return "redirect:/livres";

@@ -31,6 +31,10 @@ public class AdherantService {
         adherantRepository.save(adherant);
     }
 
+    public void deleteById(Integer id) {
+        adherantRepository.deleteById(id);
+    }
+
     public boolean isActif(Integer adherantId, LocalDateTime datePret) {
         Inscription inscription = inscriptionRepository.findLastByAdherantId(adherantId);
         if (datePret.isAfter(inscription.getDateDebut()) && datePret.isBefore(inscription.getDateFin())) {
