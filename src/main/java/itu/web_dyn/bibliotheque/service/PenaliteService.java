@@ -89,7 +89,7 @@ public class PenaliteService {
 
     public boolean isPenalise(LocalDateTime date, Integer idAdherant){
         List<Penalite> penalites = penaliteRepository.findByAdherant(adherantRepository.findById(idAdherant).orElse(null));
-        if (penalites.isEmpty()) {
+        if ( penalites == null || penalites.isEmpty()) {
             return false;
         }
         Penalite lastpenalite = penalites.stream()
