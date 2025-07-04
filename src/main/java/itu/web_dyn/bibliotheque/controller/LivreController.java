@@ -123,15 +123,4 @@ public class LivreController {
 
         return "listLivre"; // Redirection vers la page des livres
     }
-
-    @GetMapping("/detail")
-    public String detailLivre(Model model, Integer id) {
-        Livre livre = livreService.findById(id);
-        if (livre == null) {
-            return "redirect:/livre/"; // Redirection si le livre n'existe pas
-        }
-        
-        model.addAttribute("livre", livre);
-        return "detailLivre"; // Redirection vers la page de détail du livre
-    }
 }

@@ -9,6 +9,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -17,6 +18,7 @@ import itu.web_dyn.bibliotheque.service.LivreService;
 import itu.web_dyn.bibliotheque.service.ReservationService;
 import itu.web_dyn.bibliotheque.service.UtilService;
 
+@RequestMapping("/reservation")
 @Controller
 public class ReservationController {
 
@@ -26,12 +28,12 @@ public class ReservationController {
     @Autowired
     private ReservationService reservationService;
 
-    @GetMapping("/reservation")
+    @GetMapping("/form")
     public String formResa(Model model) {
         List<Livre> livres = livreService.findAll();
 
         model.addAttribute("books", livres);
-        return "formReservation"; // Redirection vers la page d'accueil
+        return "reservation/form"; // Redirection vers la page d'accueil
     }
 
     @PostMapping("/reserveBook")
@@ -46,7 +48,7 @@ public class ReservationController {
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("success", "Echec lors de la reservation du livre");
         }
-        return "redirect:/livre/detail?id=" + id_livre;
+        return "redirect:/livre/view/" + id_livre;
     }
 
 }
