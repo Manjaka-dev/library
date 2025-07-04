@@ -64,17 +64,17 @@
                                                     </td>
                                                     <td>
                                                         <c:choose>
-                                                            <c:when test="${reservation.statutReservation.nomStatut == 'En attente'}">
-                                                                <span class="badge bg-warning">${reservation.statutReservation.nomStatut}</span>
+                                                            <c:when test="${reservation.statut.nomStatut == 'En attente'}">
+                                                                <span class="badge bg-warning">${reservation.statut.nomStatut}</span>
                                                             </c:when>
-                                                            <c:when test="${reservation.statutReservation.nomStatut == 'Confirmée'}">
-                                                                <span class="badge bg-success">${reservation.statutReservation.nomStatut}</span>
+                                                            <c:when test="${reservation.statut.nomStatut == 'Confirmée'}">
+                                                                <span class="badge bg-success">${reservation.statut.nomStatut}</span>
                                                             </c:when>
-                                                            <c:when test="${reservation.statutReservation.nomStatut == 'Annulée'}">
-                                                                <span class="badge bg-danger">${reservation.statutReservation.nomStatut}</span>
+                                                            <c:when test="${reservation.statut.nomStatut == 'Annulée'}">
+                                                                <span class="badge bg-danger">${reservation.statut.nomStatut}</span>
                                                             </c:when>
                                                             <c:otherwise>
-                                                                <span class="badge bg-secondary">${reservation.statutReservation.nomStatut}</span>
+                                                                <span class="badge bg-secondary">${reservation.statut.nomStatut}</span>
                                                             </c:otherwise>
                                                         </c:choose>
                                                     </td>
