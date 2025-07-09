@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
 import itu.web_dyn.bibliotheque.entities.Adherant;
 import itu.web_dyn.bibliotheque.entities.Exemplaire;
 import itu.web_dyn.bibliotheque.entities.Livre;
@@ -73,97 +75,30 @@ public class PretController {
 
     // Traitement du formulaire de prêt
     @PostMapping("/save")
-    public String creerPret(@RequestParam("adherantId") int adherantId,
-                           @RequestParam("typePret") int typePretId,  
-                           @RequestParam("livre") int livreId, Model model) {
-        Adherant adherant = adherantService.findById(adherantId);
-        Livre livre = livreService.findById(livreId);
-        List<Exemplaire> exemplaires = livreService.findAllExemplaireByIdLivre(livre.getIdLivre());
-        Exemplaire exemplaireOpt = null;
-
-        if (adherant.getIdAdherant() == null) {
-            model.addAttribute("message", "Adhérant inexistant.");
-            preparePretPage(model);
-            return "pret/form";
+    public String creerPret(
+            @RequestParam("adherent") int adherantId,
+            @RequestParam("livre") int id_livre,
+            @RequestParam("dateFin") LocalDate dateFinLocal,
+            @RequestParam("dateDeb") LocalDate dateDebutLocal,
+            Model model,
+            RedirectAttributes redirectAttributes) {
+        LocalDateTime dateTimeDebut = UtilService.toDateTimeWithCurrentTime(dateDebutLocal);
+        LocalDateTime dateTimeFin = UtilService.toDateTimeWithCurrentTime(dateFinLocal);
+        Adherant adherant = adherantService.getAdherantByNumero(adherantId);
+        if (adherant == null) {
+            model.addAttribute("error", "Adhérant inexistant.");
+            return "redirect:/preter";
         }
 
-        // 2. L'adhérant doit être inscrit (à adapter selon ta logique d'inscription)
-        boolean inscrit = adherantService.isActif(adherant.getIdAdherant(), LocalDateTime.now());
-        if (inscrit == false) {
-            model.addAttribute("message", "Adhérant non inscrit ou inscription inactive.");
-            preparePretPage(model);
-            return "pret/form";
+        boolean pretEffectue = livreService.preterLivre(id_livre, adherant, dateTimeDebut, dateTimeFin);
+
+        if (pretEffectue) {
+            redirectAttributes.addFlashAttribute("success", "Prêt enregistré avec succès !");
+        } else {
+            redirectAttributes.addFlashAttribute("error", "Aucun exemplaire disponible pour cette période.");
         }
 
-        for (Exemplaire exemplaire : exemplaires) {
-            // 3. Le numéro de l'exemplaire doit exister
-            exemplaireOpt = exemplaireService.findById(exemplaire.getIdExemplaire());
-            if (exemplaireOpt.getIdExemplaire() == null) {
-                model.addAttribute("message", "Exemplaire n°" + exemplaire.getIdExemplaire() + " inexistant.");
-                preparePretPage(model);
-                return "pret/form";
-            }
-
-            // 4. L'exemplaire doit être disponible (pas déjà prêté)
-            Boolean disponible = exemplaireService.isExemplaireDisponible(
-                exemplaire.getIdExemplaire(),
-                LocalDateTime.now(),
-                UtilService.toDateTimeWithCurrentTime(LocalDate.now().plusDays(dureePretRepository.findAll().getLast().getDuree())));
-            if (!disponible) {
-                model.addAttribute("message", "Exemplaire n°" + exemplaire.getIdExemplaire() + " non disponible.");
-                preparePretPage(model);
-                return "pret/form";
-            }
-        }
-
-        // 5. Vérifier si l'adhérant n'est pas pénalisé
-        boolean penalise = penaliteService.isPenalise(LocalDateTime.now(),adherant.getIdAdherant()); 
-        if (penalise) {
-            model.addAttribute("message", "Adhérant pénalisé, prêt impossible.");
-            preparePretPage(model);
-            return "pret/form";
-        }
-
-        // 6. Vérifier que l'adhérant ne dépasse pas le quota pour le type de prêt
-        boolean depasseQuota = quotaTypePretService.adherantDepasseQuota(
-            adherant.getIdAdherant(),
-            adherant.getProfil().getIdProfil(),
-            typePretId
-        ); 
-
-        if (depasseQuota) {
-            model.addAttribute("message", "Quota de prêt dépassé." + depasseQuota);
-            preparePretPage(model);
-            return "pret/form";
-        }
-
-        // 7. L'adhérant peut-il prêter ce livre (ex: restrictions sur certains livres)
-        Boolean peutPreter = livreService.peutPreterLivre(adherant, livre);
-
-        if (!peutPreter) {
-            model.addAttribute("message", "Vous ne pouvez pas emprunter ce livre a cause de votre age ou du type de votre profil");
-            preparePretPage(model);
-            return "pret/form";
-        }
-
-        Pret pret = new Pret(
-            LocalDateTime.now(), // Date de début du prêt
-            adminService.findById(1), // Admin (à définir selon votre logique, peut-être l'admin connecté)
-            typePretService.findById(typePretId), // Type de prêt
-            exemplaireOpt, // Exemplaire (le dernier exemplaire vérifié)
-            adherant // Adhérant
-        );
-        
-
-        if (exemplaireOpt != null) {
-            pretService.save(pret);
-            model.addAttribute("message", "Prêt validé et inséré");
-        }
-
-        preparePretPage(model);
-        
-        // Redirection vers la page de confirmation ou d'accueil après le prêt
-        return "pret/form";
+        return "redirect:/preter";
     }
 
     // Détails d'un prêt
