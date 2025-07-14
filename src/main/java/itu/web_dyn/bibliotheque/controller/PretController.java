@@ -8,7 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import itu.web_dyn.bibliotheque.entities.Adherant;
 import itu.web_dyn.bibliotheque.entities.Admin;
@@ -28,6 +30,7 @@ import itu.web_dyn.bibliotheque.service.UtilService;
 import jakarta.servlet.http.HttpSession;
 
 @Controller
+@RequestMapping("/prets")
 public class PretController {
 
     // @PostConstruct
@@ -66,6 +69,19 @@ public class PretController {
         model.addAttribute("livres", livreService.findAll());
         model.addAttribute("adherants", adherantService.findAll());
         model.addAttribute("typesPret", typePretService.findAll());
+    }
+
+    // Formulaire de nouveau prêt
+    @GetMapping("/new")
+    public String newPret(Model model, HttpSession session) {
+        // Vérifier les autorisations
+        String userType = (String) session.getAttribute("userType");
+        if (!"admin".equals(userType)) {
+            return "redirect:/prets?error=access-denied";
+        }
+        
+        preparePretPage(model);
+        return "pret/form";
     }
 
     @GetMapping("/preter")
@@ -197,4 +213,98 @@ public class PretController {
         return "pret";
         
     }
+
+    // Voir les détails d'un prêt
+    @GetMapping("/view/{id}")
+    public String viewPret(@PathVariable("id") Integer id, Model model, HttpSession session) {
+        // Récupérer le type d'utilisateur depuis la session
+        String userType = (String) session.getAttribute("userType");
+        model.addAttribute("userType", userType);
+        
+        // Récupérer le prêt
+        Pret pret = pretService.findById(id);
+        if (pret == null) {
+            return "redirect:/prets";
+        }
+        
+        // Vérifier les autorisations
+        if ("admin".equals(userType)) {
+            // Admin peut voir tous les prêts
+            model.addAttribute("pret", pret);
+            return "pret/view";
+        } else if ("adherant".equals(userType)) {
+            // Adhérent ne peut voir que ses propres prêts
+            Adherant adherant = (Adherant) session.getAttribute("user");
+            if (adherant != null && pret.getAdherant().getIdAdherant().equals(adherant.getIdAdherant())) {
+                model.addAttribute("pret", pret);
+                return "pret/view";
+            }
+        }
+        
+        // Rediriger vers la liste des prêts si pas d'autorisation
+        return "redirect:/prets";
+    }
+
+    // Modifier un prêt (formulaire)
+    @GetMapping("/edit/{id}")
+    public String editPretForm(@PathVariable("id") Integer id, Model model, HttpSession session) {
+        // Seuls les admins peuvent modifier les prêts
+        String userType = (String) session.getAttribute("userType");
+        if (!"admin".equals(userType)) {
+            return "redirect:/prets";
+        }
+        
+        Pret pret = pretService.findById(id);
+        if (pret == null) {
+            return "redirect:/prets";
+        }
+        
+        model.addAttribute("pret", pret);
+        model.addAttribute("userType", userType);
+        return "pret/edit";
+    }
+
+    // Supprimer un prêt
+    @GetMapping("/delete/{id}")
+    public String deletePret(@PathVariable("id") Integer id, HttpSession session) {
+        // Seuls les admins peuvent supprimer les prêts
+        String userType = (String) session.getAttribute("userType");
+        if (!"admin".equals(userType)) {
+            return "redirect:/prets";
+        }
+        
+        Pret pret = pretService.findById(id);
+        if (pret != null) {
+            pretService.deleteById(id);
+        }
+        
+        return "redirect:/prets";
+    }
+
+    // Liste des prêts
+    @GetMapping
+    public String listPrets(Model model, HttpSession session) {
+        // Récupérer le type d'utilisateur depuis la session
+        String userType = (String) session.getAttribute("userType");
+        model.addAttribute("userType", userType);
+        
+        if ("admin".equals(userType)) {
+            // Admin peut voir tous les prêts
+            List<Pret> prets = pretService.findAll();
+            model.addAttribute("prets", prets);
+            return "pret/list";
+        } else if ("adherant".equals(userType)) {
+            // Adhérent ne peut voir que ses propres prêts
+            Adherant adherant = (Adherant) session.getAttribute("user");
+            if (adherant != null) {
+                List<Pret> prets = pretService.findByAdherant(adherant);
+                model.addAttribute("prets", prets);
+                return "pret/list";
+            }
+        }
+        
+        // Rediriger vers la page d'accueil si pas d'autorisation
+        return "redirect:/";
+    }
+
 }

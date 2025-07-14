@@ -49,6 +49,10 @@ public class PretService {
         return retourRepository.findRetourByPret(pret.getIdPret());
     }
 
+    public List<Pret> findByAdherant(itu.web_dyn.bibliotheque.entities.Adherant adherant) {
+        return pretRepository.findByAdherantIdAdherant(adherant.getIdAdherant());
+    }
+
     public static boolean datesSeChevauchent(LocalDateTime debut1, LocalDateTime fin1,
                                              LocalDateTime debut2, LocalDateTime fin2) {
         return !fin1.isBefore(debut2) && !fin2.isBefore(debut1);

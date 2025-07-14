@@ -54,13 +54,12 @@
                                             </td>
                                             <td>
                                                 <span class="badge bg-secondary">Ex. #${pret.exemplaire.idExemplaire}</span>
-                                            </td>
-                                            <td>
-                                                <span class="badge bg-info">${pret.typePret.type}</span>
-                                            </td>
-                                            <td>
-                                                <fmt:formatDate value="${pret.datePret}" pattern="dd/MM/yyyy HH:mm"/>
-                                            </td>
+                                            </td>                            <td>
+                                <span class="badge bg-info">${pret.typePret.type}</span>
+                            </td>
+                            <td>
+                                ${pret.dateDebutFormattee}
+                            </td>
                                             <td>
                                                 <small>${pret.admin.nomAdmin} ${pret.admin.prenomAdmin}</small>
                                             </td>
