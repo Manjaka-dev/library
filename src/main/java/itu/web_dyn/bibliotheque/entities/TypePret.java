@@ -18,12 +18,16 @@ public class TypePret {
     @Column(name = "type", length = 50)
     private String type;
     
+    @Column(name = "duree_jours")
+    private Integer dureeJours;
+    
     // Constructeurs
     public TypePret() {}
     
-    public TypePret(Integer idTypePret, String type) {
+    public TypePret(Integer idTypePret, String type, Integer dureeJours) {
         this.idTypePret = idTypePret;
         this.type = type;
+        this.dureeJours = dureeJours;
     }
     
     // Getters et Setters
@@ -41,5 +45,13 @@ public class TypePret {
     
     public void setType(String type) {
         this.type = type;
+    }
+    
+    public Integer getDureeJours() {
+        return dureeJours;
+    }
+    
+    public void setDureeJours(Integer dureeJours) {
+        this.dureeJours = dureeJours;
     }
 }
