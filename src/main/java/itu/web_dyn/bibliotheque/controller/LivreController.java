@@ -17,10 +17,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import itu.web_dyn.bibliotheque.entities.Adherant;
 import itu.web_dyn.bibliotheque.entities.Categorie;
+import itu.web_dyn.bibliotheque.entities.Exemplaire;
 import itu.web_dyn.bibliotheque.entities.Livre;
 import itu.web_dyn.bibliotheque.repository.AuteurRepository;
 import itu.web_dyn.bibliotheque.repository.CategorieRepository;
 import itu.web_dyn.bibliotheque.repository.EditeurRepository;
+import itu.web_dyn.bibliotheque.repository.ExemplaireRepository;
 import itu.web_dyn.bibliotheque.repository.LivreRepository;
 import itu.web_dyn.bibliotheque.service.CategorieService;
 import itu.web_dyn.bibliotheque.service.LivreService;
@@ -42,6 +44,9 @@ public class LivreController {
     private CategorieRepository categorieRepository;
 
     @Autowired
+    private ExemplaireRepository exemplaireRepository;
+
+    @Autowired
     private LivreService livreService;
 
     @Autowired
@@ -49,15 +54,26 @@ public class LivreController {
 
     // Liste des livres
     @GetMapping
-    public String listLivres(Model model) {
+    public String listLivres(Model model, HttpSession session) {
         List<Livre> livres = livreRepository.findAll();
         model.addAttribute("livres", livres);
+        
+        // Ajouter le type d'utilisateur pour la vue
+        String userType = (String) session.getAttribute("userType");
+        model.addAttribute("userType", userType);
+        
         return "livre/list";
     }
 
-    // Formulaire d'ajout
+    // Formulaire d'ajout - ADMIN UNIQUEMENT
     @GetMapping("/new")
-    public String newLivre(Model model) {
+    public String newLivre(Model model, HttpSession session) {
+        // Vérifier que l'utilisateur est admin
+        String userType = (String) session.getAttribute("userType");
+        if (!"admin".equals(userType)) {
+            return "redirect:/livres?error=access-denied";
+        }
+        
         model.addAttribute("livre", new Livre());
         model.addAttribute("auteurs", auteurRepository.findAll());
         model.addAttribute("editeurs", editeurRepository.findAll());
@@ -65,10 +81,17 @@ public class LivreController {
         return "livre/form";
     }
 
-    // Sauvegarde
+    // Sauvegarde - ADMIN UNIQUEMENT
     @PostMapping("/save")
     public String saveLivre(@ModelAttribute Livre livre, 
-                           @RequestParam(value = "categorieIds", required = false) List<Integer> categorieIds) {
+                           @RequestParam(value = "categorieIds", required = false) List<Integer> categorieIds,
+                           HttpSession session) {
+        // Vérifier que l'utilisateur est admin
+        String userType = (String) session.getAttribute("userType");
+        if (!"admin".equals(userType)) {
+            return "redirect:/livres?error=access-denied";
+        }
+        
         // Gestion des catégories Many-to-Many
         if (categorieIds != null && !categorieIds.isEmpty()) {
             livre.setCategories(new HashSet<>());
@@ -84,9 +107,15 @@ public class LivreController {
         return "redirect:/livres";
     }
 
-    // Formulaire d'édition
+    // Formulaire d'édition - ADMIN UNIQUEMENT
     @GetMapping("/edit/{id}")
-    public String editLivre(@PathVariable Integer id, Model model) {
+    public String editLivre(@PathVariable Integer id, Model model, HttpSession session) {
+        // Vérifier que l'utilisateur est admin
+        String userType = (String) session.getAttribute("userType");
+        if (!"admin".equals(userType)) {
+            return "redirect:/livres?error=access-denied";
+        }
+        
         Livre livre = livreRepository.findById(id).orElse(null);
         if (livre != null) {
             model.addAttribute("livre", livre);
@@ -98,9 +127,15 @@ public class LivreController {
         return "redirect:/livres";
     }
 
-    // Suppression
+    // Suppression - ADMIN UNIQUEMENT
     @GetMapping("/delete/{id}")
-    public String deleteLivre(@PathVariable Integer id) {
+    public String deleteLivre(@PathVariable Integer id, HttpSession session) {
+        // Vérifier que l'utilisateur est admin
+        String userType = (String) session.getAttribute("userType");
+        if (!"admin".equals(userType)) {
+            return "redirect:/livres?error=access-denied";
+        }
+        
         livreRepository.deleteById(id);
         return "redirect:/livres";
     }
@@ -111,6 +146,11 @@ public class LivreController {
         Livre livre = livreRepository.findById(id).orElse(null);
         if (livre != null) {
             model.addAttribute("livre", livre);
+            
+            // Récupérer les exemplaires de ce livre
+            List<Exemplaire> exemplaires = exemplaireRepository.findByLivreIdLivre(id);
+            model.addAttribute("exemplaires", exemplaires);
+            model.addAttribute("nbExemplaires", exemplaires.size());
             
             // Récupérer le type d'utilisateur depuis la session
             String userType = (String) session.getAttribute("userType");
@@ -126,15 +166,26 @@ public class LivreController {
                 }
             }
             
+            // Ajouter des informations contextuelles pour l'affichage
+            if (userType == null) {
+                model.addAttribute("isGuest", true);
+            } else {
+                model.addAttribute("isGuest", false);
+            }
+            
             return "livre/view";
         }
         return "redirect:/livres";
     }
 
     @GetMapping("/list")
-    public String livres(Model model) {
+    public String livres(Model model, HttpSession session) {
         List<Livre> livres = livreService.findAll();
         List<Categorie> categories = categorieService.findAll();
+        
+        // Ajouter le type d'utilisateur pour la vue
+        String userType = (String) session.getAttribute("userType");
+        model.addAttribute("userType", userType);
         
         model.addAttribute("livres", livres);
         model.addAttribute("categories", categories);
