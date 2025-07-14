@@ -37,6 +37,7 @@ CREATE TABLE admin(
 CREATE TABLE type_pret(
    id_type_pret INT,
    type VARCHAR(50),
+   duree_jours INT,
    PRIMARY KEY(id_type_pret)
 );
 
