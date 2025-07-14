@@ -195,7 +195,7 @@
                         <div class="d-flex justify-content-between align-items-center">
                             <span>Exemplaires disponibles:</span>
                             <span class="badge bg-success fs-6">
-                                ${nbExemplaires}
+                                ${livre.exemplaires != null ? livre.exemplaires.size() : 0}
                             </span>
                         </div>
                     </div>
