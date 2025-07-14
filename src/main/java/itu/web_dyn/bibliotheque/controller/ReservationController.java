@@ -195,10 +195,10 @@ public class ReservationController {
                 return "redirect:/auth/login";
             }
             
-            // Créer la réservation avec statut "En attente" (ID = 1)
+            // Créer la réservation avec statut "En attente"
             LocalDateTime dateTime = UtilService.toDateTimeWithCurrentTime(dateReservation);
             Livre livre = livreService.findById(livreId);
-            StatutReservation statutEnAttente = statutReservationService.findById(1); // En attente
+            StatutReservation statutEnAttente = statutReservationService.findByNomStatut("En attente");
             
             // Trouver un exemplaire disponible
             List<Exemplaire> exemplairesLivre = exemplaireService.findAllExemplaireByIdLivre(livreId);

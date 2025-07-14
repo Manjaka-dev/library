@@ -2,7 +2,10 @@ package itu.web_dyn.bibliotheque.controller;
 
 import java.time.LocalDateTime;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -12,14 +15,18 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import itu.web_dyn.bibliotheque.entities.Adherant;
 import itu.web_dyn.bibliotheque.entities.Admin;
 import itu.web_dyn.bibliotheque.entities.Exemplaire;
 import itu.web_dyn.bibliotheque.entities.FinPret;
+import itu.web_dyn.bibliotheque.entities.Inscription;
 import itu.web_dyn.bibliotheque.entities.Livre;
 import itu.web_dyn.bibliotheque.entities.Pret;
 import itu.web_dyn.bibliotheque.entities.Reservation;
+import itu.web_dyn.bibliotheque.entities.Retour;
 import itu.web_dyn.bibliotheque.entities.StatutReservation;
+import itu.web_dyn.bibliotheque.entities.TypePret;
 import itu.web_dyn.bibliotheque.service.AdherantService;
 import itu.web_dyn.bibliotheque.service.ExemplaireService;
 import itu.web_dyn.bibliotheque.service.FinPretService;
@@ -31,6 +38,8 @@ import itu.web_dyn.bibliotheque.service.ReservationService;
 import itu.web_dyn.bibliotheque.service.StatutReservationService;
 import itu.web_dyn.bibliotheque.service.TypePretService;
 import itu.web_dyn.bibliotheque.service.UtilService;
+import itu.web_dyn.bibliotheque.repository.AdherantRepository;
+import itu.web_dyn.bibliotheque.repository.InscriptionRepository;
 import jakarta.servlet.http.HttpSession;
 
 @Controller
@@ -75,6 +84,12 @@ public class PretController {
     @Autowired
     private StatutReservationService statutReservationService;
 
+    @Autowired
+    private AdherantRepository adherantRepository;
+
+    @Autowired
+    private InscriptionRepository inscriptionRepository;
+
     private void preparePretPage(Model model) {
         model.addAttribute("livres", livreService.findAll());
         model.addAttribute("adherants", adherantService.findAll());
@@ -106,13 +121,17 @@ public class PretController {
     public String preterLivre(@RequestParam("adherantId") int adherantId,
                               @RequestParam("typePret") int typePretId,  
                               @RequestParam("livre") int livreId,
-                              @RequestParam("dateFin") LocalDate dateFin, 
+                              @RequestParam("dateDebut") LocalDate dateDebut, 
                               HttpSession session,
                               Model model) {
 
         Adherant adherant = adherantService.findById(adherantId);
         Livre livre = livreService.findById(livreId);
+        TypePret typePret = typePretService.findById(typePretId);
         List<Exemplaire> exemplaires = exemplaireService.findAllExemplaireByIdLivre(livre.getIdLivre());
+        
+        // Calculer automatiquement la date de fin basée sur le type de prêt
+        LocalDate dateFin = dateDebut.plusDays(typePret.getDureeJours());
         
         Exemplaire exemplaireOpt = null;
 
@@ -139,7 +158,9 @@ public class PretController {
         System.out.println("----------------- LOOP FOR EXEMPLAIRE");
         for (Exemplaire exemplaire : exemplaires) {
             // 3. Le numéro de l'exemplaire doit exister
-            if (exemplaireService.isExemplaireDisponible(exemplaire.getIdExemplaire(), LocalDateTime.now(), UtilService.toDateTimeWithCurrentTime(dateFin))) {
+            if (exemplaireService.isExemplaireDisponible(exemplaire.getIdExemplaire(), 
+                    dateDebut.atStartOfDay(), 
+                    dateFin.atStartOfDay())) {
                 exemplaireOpt = exemplaire;
                 break;
             }
@@ -189,7 +210,19 @@ public class PretController {
             return "pret";
         }
 
-        Admin admin = (Admin) session.getAttribute("admin");
+        // Récupérer l'admin connecté depuis la session
+        Admin admin = null;
+        Object user = session.getAttribute("user");
+        String userType = (String) session.getAttribute("userType");
+        
+        if (user instanceof Admin && "admin".equals(userType)) {
+            admin = (Admin) user;
+        } else {
+            // Si l'admin n'est pas trouvé, ajouter un message d'erreur
+            model.addAttribute("error", "Vous devez être connecté en tant qu'administrateur pour créer un prêt.");
+            preparePretPage(model);
+            return "pret";
+        }
 
         // Pret pret = new Pret(
         //     LocalDateTime.now(), // Date de début du prêt
@@ -201,12 +234,12 @@ public class PretController {
         Pret pret = new Pret();
         pret.setAdherant(adherant);
         pret.setAdmin(admin);
-        pret.setDateDebut(LocalDateTime.now());
+        pret.setDateDebut(dateDebut.atStartOfDay()); // Convertir LocalDate en LocalDateTime
         pret.setExemplaire(exemplaireOpt);
-        pret.setTypePret(typePretService.findById(typePretId));
+        pret.setTypePret(typePret);
 
 
-        FinPret finPret = new FinPret(UtilService.toDateTimeWithCurrentTime(dateFin), pret);
+        FinPret finPret = new FinPret(dateFin.atStartOfDay(), pret);
         
         if (exemplaireOpt != null) {
             System.out.println("----------------- SAVE PRET -----------------------------");
@@ -466,15 +499,42 @@ public class PretController {
                 return "redirect:/reservations/view/" + reservationId;
             }
             
+            // Vérifier le quota pour le type de prêt
+            boolean depasseQuota = quotaTypePretService.adherantDepasseQuota(
+                adherant.getIdAdherant(),
+                adherant.getProfil().getIdProfil(),
+                typePretId
+            ); 
+            if (depasseQuota) {
+                model.addAttribute("message", "Quota de prêt dépassé pour ce type de prêt.");
+                return "redirect:/reservations/view/" + reservationId;
+            }
+            
+            // Vérifier les restrictions d'âge et de profil
+            Boolean peutPreter = livreService.peutPreterLivre(adherant, livre);
+            if (!peutPreter) {
+                model.addAttribute("message", "Vous ne pouvez pas emprunter ce livre à cause de votre âge ou du type de votre profil.");
+                return "redirect:/reservations/view/" + reservationId;
+            }
+            
             // Trouver un exemplaire disponible
-            List<Exemplaire> exemplaires = exemplaireService.findAllExemplaireByIdLivre(livre.getIdLivre());
+            // Commencer par vérifier l'exemplaire de la réservation
             Exemplaire exemplaireOpt = null;
             
-            for (Exemplaire exemplaire : exemplaires) {
-                if (exemplaireService.isExemplaireDisponible(exemplaire.getIdExemplaire(), LocalDateTime.now(), 
-                    UtilService.toDateTimeWithCurrentTime(dateFin))) {
-                    exemplaireOpt = exemplaire;
-                    break;
+            // Vérifier d'abord si l'exemplaire de la réservation est disponible
+            if (reservation.getExemplaire() != null && 
+                exemplaireService.isExemplaireDisponible(reservation.getExemplaire().getIdExemplaire(), 
+                LocalDateTime.now(), UtilService.toDateTimeWithCurrentTime(dateFin))) {
+                exemplaireOpt = reservation.getExemplaire();
+            } else {
+                // Sinon, chercher un autre exemplaire disponible
+                List<Exemplaire> exemplaires = exemplaireService.findAllExemplaireByIdLivre(livre.getIdLivre());
+                for (Exemplaire exemplaire : exemplaires) {
+                    if (exemplaireService.isExemplaireDisponible(exemplaire.getIdExemplaire(), LocalDateTime.now(), 
+                        UtilService.toDateTimeWithCurrentTime(dateFin))) {
+                        exemplaireOpt = exemplaire;
+                        break;
+                    }
                 }
             }
             
@@ -485,6 +545,10 @@ public class PretController {
             
             // Créer le prêt
             Admin admin = (Admin) session.getAttribute("admin");
+            if (admin == null) {
+                model.addAttribute("message", "Session administrateur invalide. Veuillez vous reconnecter.");
+                return "redirect:/auth/login";
+            }
             Pret pret = new Pret();
             pret.setAdherant(adherant);
             pret.setAdmin(admin);
@@ -492,23 +556,236 @@ public class PretController {
             pret.setExemplaire(exemplaireOpt);
             pret.setTypePret(typePretService.findById(typePretId));
             
-            FinPret finPret = new FinPret(UtilService.toDateTimeWithCurrentTime(dateFin), pret);
-            
-            // Sauvegarder le prêt
+            // Sauvegarder le prêt d'abord pour obtenir l'ID
             pretService.save(pret);
+            
+            // Créer et sauvegarder FinPret après que le Pret ait un ID
+            FinPret finPret = new FinPret(UtilService.toDateTimeWithCurrentTime(dateFin), pret);
             finPretService.save(finPret);
             
             // Mettre à jour le statut de la réservation à "Confirmée"
-            StatutReservation statutConfirme = statutReservationService.findById(2); // Confirmée
+            StatutReservation statutConfirme = statutReservationService.findByNomStatut("Confirmée");
             reservation.setStatut(statutConfirme);
+            reservation.setStatutReservation(statutConfirme); // Assurer la synchronisation des deux champs
             reservation.setAdmin(admin);
             reservationService.save(reservation);
             
             return "redirect:/prets/view/" + pret.getIdPret() + "?success=pret-created-from-reservation";
             
         } catch (Exception e) {
+            System.err.println("=== ERREUR TRANSFORMATION RESERVATION EN PRET ===");
+            System.err.println("Reservation ID: " + reservationId);
+            System.err.println("Type de prêt ID: " + typePretId);
+            System.err.println("Date de fin: " + dateFin);
+            System.err.println("Message d'erreur: " + e.getMessage());
+            System.err.println("Stack trace:");
+            e.printStackTrace();
+            System.err.println("=================================================");
+            
             model.addAttribute("message", "Erreur lors de la création du prêt : " + e.getMessage());
             return "redirect:/reservations/view/" + reservationId;
+        }
+    }
+
+    // Méthode de diagnostic pour tester la transformation
+    @GetMapping("/debug-transformation/{reservationId}")
+    public String debugTransformation(@PathVariable Integer reservationId, Model model, HttpSession session) {
+        try {
+            System.out.println("=== DEBUG TRANSFORMATION RESERVATION → PRET ===");
+            System.out.println("Reservation ID: " + reservationId);
+            
+            // 1. Vérifier les autorisations
+            String userType = (String) session.getAttribute("userType");
+            System.out.println("User type: " + userType);
+            if (!"admin".equals(userType)) {
+                System.out.println("❌ Accès refusé - pas admin");
+                model.addAttribute("error", "Accès refusé - utilisateur non admin");
+                return "pret/debug";
+            }
+            
+            // 2. Récupérer la réservation
+            Reservation reservation = reservationService.findById(reservationId);
+            System.out.println("Reservation trouvée: " + (reservation != null));
+            if (reservation == null) {
+                System.out.println("❌ Réservation non trouvée");
+                model.addAttribute("error", "Réservation non trouvée");
+                return "pret/debug";
+            }
+            
+            System.out.println("Statut réservation: " + reservation.getStatut().getNomStatut());
+            System.out.println("Livre: " + reservation.getLivre().getTitre());
+            System.out.println("Adhérant: " + reservation.getAdherant().getNomAdherant());
+            
+            // 3. Vérifier l'adhérant
+            Adherant adherant = reservation.getAdherant();
+            boolean inscrit = adherantService.isActif(adherant.getIdAdherant(), LocalDateTime.now());
+            System.out.println("Adhérant actif: " + inscrit);
+            
+            boolean penalise = penaliteService.isPenalise(LocalDateTime.now(), adherant.getIdAdherant());
+            System.out.println("Adhérant pénalisé: " + penalise);
+            
+            // 4. Vérifier les exemplaires
+            Livre livre = reservation.getLivre();
+            List<Exemplaire> exemplaires = exemplaireService.findAllExemplaireByIdLivre(livre.getIdLivre());
+            System.out.println("Nombre d'exemplaires pour ce livre: " + exemplaires.size());
+            
+            // 5. Tester la disponibilité des exemplaires
+            LocalDateTime dateDebut = LocalDateTime.now();
+            LocalDateTime dateFin = dateDebut.plusDays(14); // Test avec 14 jours
+            
+            for (Exemplaire exemplaire : exemplaires) {
+                boolean disponible = exemplaireService.isExemplaireDisponible(
+                    exemplaire.getIdExemplaire(), dateDebut, dateFin);
+                System.out.println("Exemplaire " + exemplaire.getIdExemplaire() + " disponible: " + disponible);
+            }
+            
+            // 6. Vérifier spécifiquement l'exemplaire de la réservation
+            if (reservation.getExemplaire() != null) {
+                boolean exemplaireResaDisponible = exemplaireService.isExemplaireDisponible(
+                    reservation.getExemplaire().getIdExemplaire(), dateDebut, dateFin);
+                System.out.println("Exemplaire de la réservation (" + reservation.getExemplaire().getIdExemplaire() + ") disponible: " + exemplaireResaDisponible);
+            } else {
+                System.out.println("❌ Pas d'exemplaire assigné à la réservation");
+            }
+            
+            // 7. Vérifier l'admin
+            Admin admin = (Admin) session.getAttribute("admin");
+            System.out.println("Admin en session: " + (admin != null ? admin.getNomAdmin() : "null"));
+            
+            System.out.println("=== FIN DEBUG ===");
+            
+            model.addAttribute("debugInfo", "Vérification terminée - consultez les logs de la console");
+            return "pret/debug";
+            
+        } catch (Exception e) {
+            System.err.println("❌ ERREUR DURANT DEBUG: " + e.getMessage());
+            e.printStackTrace();
+            model.addAttribute("error", "Erreur durant le debug: " + e.getMessage());
+            return "pret/debug";
+        }
+    }
+
+    // Test simple pour vérifier la disponibilité d'un exemplaire
+    @GetMapping("/test-exemplaire/{exemplaireId}")
+    public String testExemplaire(@PathVariable Integer exemplaireId, Model model) {
+        try {
+            System.out.println("=== TEST EXEMPLAIRE " + exemplaireId + " ===");
+            
+            // Test avec différentes périodes
+            LocalDateTime maintenant = LocalDateTime.now();
+            LocalDateTime dans14jours = maintenant.plusDays(14);
+            LocalDateTime dans30jours = maintenant.plusDays(30);
+            
+            // Test 1: Disponibilité maintenant pour 14 jours
+            boolean dispo14j = exemplaireService.isExemplaireDisponible(exemplaireId, maintenant, dans14jours);
+            System.out.println("Disponible maintenant pour 14 jours: " + dispo14j);
+            
+            // Test 2: Disponibilité maintenant pour 30 jours
+            boolean dispo30j = exemplaireService.isExemplaireDisponible(exemplaireId, maintenant, dans30jours);
+            System.out.println("Disponible maintenant pour 30 jours: " + dispo30j);
+            
+            // Test 3: Disponibilité juste maintenant (méthode à 1 paramètre)
+            boolean dispoMaintenant = exemplaireService.isExemplaireDisponible(exemplaireId, maintenant);
+            System.out.println("Disponible maintenant (simple): " + dispoMaintenant);
+            
+            // Récupérer les prêts pour cet exemplaire
+            List<Pret> prets = pretService.findByIdExemplaire(exemplaireId);
+            System.out.println("Nombre de prêts pour cet exemplaire: " + prets.size());
+            
+            for (Pret pret : prets) {
+                System.out.println("Prêt ID: " + pret.getIdPret() + ", Date début: " + pret.getDateDebut());
+                
+                // Vérifier retour
+                Retour retour = pretService.findRetourPret(pret);
+                if (retour != null) {
+                    System.out.println("  - Retour: " + retour.getDateRetour());
+                } else {
+                    System.out.println("  - Pas de retour");
+                    
+                    // Vérifier FinPret
+                    FinPret finPret = pretService.findFinPret(pret);
+                    if (finPret != null) {
+                        System.out.println("  - Date fin prévue: " + finPret.getDateFin());
+                    } else {
+                        System.out.println("  - Pas de date de fin prévue");
+                    }
+                }
+            }
+            
+            System.out.println("=== FIN TEST EXEMPLAIRE ===");
+            
+            model.addAttribute("exemplaireId", exemplaireId);
+            model.addAttribute("dispo14j", dispo14j);
+            model.addAttribute("dispo30j", dispo30j);
+            model.addAttribute("dispoMaintenant", dispoMaintenant);
+            model.addAttribute("nbPrets", prets.size());
+            
+            return "pret/debug";
+            
+        } catch (Exception e) {
+            System.err.println("❌ ERREUR TEST EXEMPLAIRE: " + e.getMessage());
+            e.printStackTrace();
+            model.addAttribute("error", "Erreur test exemplaire: " + e.getMessage());
+            return "pret/debug";
+        }
+    }
+    
+    @GetMapping("/create-test-inscription/{adherantId}")
+    @ResponseBody
+    public String createTestInscription(@PathVariable Integer adherantId) {
+        try {
+            // Vérifier si l'adhérant existe
+            Optional<Adherant> adherantOpt = adherantRepository.findById(adherantId);
+            if (!adherantOpt.isPresent()) {
+                return "❌ Adhérant avec ID " + adherantId + " non trouvé";
+            }
+            
+            Adherant adherant = adherantOpt.get();
+            
+            // Vérifier s'il a déjà une inscription active
+            Inscription existingInscription = inscriptionRepository.findLastByAdherantId(adherantId);
+            LocalDateTime now = LocalDateTime.now();
+            
+            if (existingInscription != null && 
+                now.isAfter(existingInscription.getDateDebut()) && 
+                now.isBefore(existingInscription.getDateFin())) {
+                return "✅ Adhérant " + adherant.getNomAdherant() + " " + adherant.getPrenomAdherant() + 
+                       " a déjà une inscription active du " + existingInscription.getDateDebut() + 
+                       " au " + existingInscription.getDateFin();
+            }
+            
+            // Créer une nouvelle inscription (valide 1 an)
+            Inscription inscription = new Inscription();
+            inscription.setAdherant(adherant);
+            inscription.setDateDebut(now.minusDays(30)); // Commencée il y a 30 jours
+            inscription.setDateFin(now.plusDays(335));   // Valide encore 335 jours
+            
+            inscriptionRepository.save(inscription);
+            
+            return "✅ Inscription créée pour " + adherant.getNomAdherant() + " " + adherant.getPrenomAdherant() + 
+                   " - Valide du " + inscription.getDateDebut() + " au " + inscription.getDateFin() + 
+                   "<br><br>🔄 Vous pouvez maintenant tester la transformation de réservation !";
+                   
+        } catch (Exception e) {
+            return "❌ ERREUR lors de la création de l'inscription: " + e.getMessage();
+        }
+    }
+    
+    @GetMapping("/api/type-pret/{id}/duree")
+    @ResponseBody
+    public Map<String, Object> getTypePretDuree(@PathVariable Integer id) {
+        try {
+            TypePret typePret = typePretService.findById(id);
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("duree", typePret.getDureeJours());
+            response.put("type", typePret.getType());
+            return response;
+        } catch (Exception e) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("error", "Type de prêt non trouvé");
+            return response;
         }
     }
 }
