@@ -51,9 +51,9 @@ public class LivreService {
     public boolean peutPreterLivre(Adherant adherant, Livre livre) {
         // 1. Vérifier la restriction de catégorie
         for (Categorie categorie : livre.getCategories()) {
-            int restreint = restrictionCategorieRepository.existsRestriction(
+            boolean restreint = restrictionCategorieRepository.existsRestriction(
                 categorie.getIdCategorie(), adherant.getProfil().getIdProfil());
-            if (restreint == 0) {
+            if (!restreint) {
                 return false;
             }
         }
