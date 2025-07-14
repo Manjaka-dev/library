@@ -97,14 +97,14 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label for="statutReservation" class="form-label">
+                                        <label for="statut" class="form-label">
                                             <i class="fas fa-flag text-warning"></i> Statut *
                                         </label>
-                                        <select class="form-select" id="statutReservation" name="statutReservation.idStatutReservation" required>
+                                        <select class="form-select" id="statut" name="statut.idStatutReservation" required>
                                             <option value="">-- Sélectionner un statut --</option>
                                             <c:forEach var="statut" items="${statuts}">
                                                 <option value="${statut.idStatutReservation}" 
-                                                        <c:if test="${reservation.statutReservation.idStatutReservation == statut.idStatutReservation}">selected</c:if>>
+                                                        <c:if test="${reservation.statut.idStatutReservation == statut.idStatutReservation}">selected</c:if>>
                                                     ${statut.nomStatut}
                                                 </option>
                                             </c:forEach>

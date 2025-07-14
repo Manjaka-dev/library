@@ -184,9 +184,14 @@
                         <c:when test="${sessionScope.userType == 'adherant'}">
                             <p class="lead">Bienvenue dans votre espace personnel</p>
                             <p class="text-muted">Connecté en tant que : <strong>${sessionScope.userName}</strong> (Adhérent)</p>
-                            <a href="/adherant/dashboard" class="btn btn-primary btn-lg mt-3">
-                                <i class="fas fa-home"></i> Accéder à Mon Espace
-                            </a>
+                            <div class="mt-3">
+                                <a href="/adherant/dashboard" class="btn btn-primary btn-lg me-3">
+                                    <i class="fas fa-home"></i> Mon Espace
+                                </a>
+                                <a href="/listLivre" class="btn btn-outline-primary btn-lg">
+                                    <i class="fas fa-book-open"></i> Catalogue
+                                </a>
+                            </div>
                         </c:when>
                         <c:otherwise>
                             <p class="lead">Veuillez vous connecter pour accéder aux services</p>
@@ -412,7 +417,7 @@
 
             <div class="row mb-5">
                 <div class="col-md-6 mb-3">
-                    <a href="/livres" class="text-decoration-none">
+                    <a href="/listLivre" class="text-decoration-none">
                         <div class="card menu-card border-0 shadow-sm bg-success text-white">
                             <div class="text-center">
                                 <i class="fas fa-book fa-4x mb-3"></i>

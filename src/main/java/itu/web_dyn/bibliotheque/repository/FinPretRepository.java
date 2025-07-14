@@ -18,4 +18,8 @@ public interface FinPretRepository extends JpaRepository<FinPret, Integer> {
     
     @Query("SELECT fp FROM FinPret fp WHERE fp.dateFin BETWEEN :dateDebut AND :dateFin")
     List<FinPret> findByDateFinBetween(@Param("dateDebut") LocalDateTime dateDebut, @Param("dateFin") LocalDateTime dateFin);
+    
+    // Méthode pour trouver le FinPret d'un prêt spécifique (une seule occurrence)
+    @Query("SELECT fp FROM FinPret fp WHERE fp.pret.idPret = :idPret")
+    FinPret findByIdPret(@Param("idPret") Integer idPret);
 }

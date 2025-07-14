@@ -18,6 +18,7 @@ import itu.web_dyn.bibliotheque.entities.Pret;
 import itu.web_dyn.bibliotheque.entities.FinPret;
 import itu.web_dyn.bibliotheque.repository.PretRepository;
 import itu.web_dyn.bibliotheque.repository.FinPretRepository;
+import itu.web_dyn.bibliotheque.service.ProlongementService;
 
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,6 +34,9 @@ public class ProlongementControlleur {
 
     @Autowired
     private FinPretRepository finPretRepository;
+    
+    @Autowired
+    private ProlongementService prolongementService;
 
     @PostMapping("/save")
     public String prolonger(
@@ -59,31 +63,20 @@ public class ProlongementControlleur {
                 redirectAttributes.addFlashAttribute("error", "La nouvelle date doit être postérieure à aujourd'hui.");
                 return "redirect:/Prolongement";
             }
-
-            // Trouver la fin de prêt existante ou en créer une nouvelle
-            List<FinPret> finsPret = finPretRepository.findByPretId(idPret);
-            FinPret finPret;
+            try {
+                // Utiliser le service pour prolonger le prêt
+                prolongementService.prolongerPretAvecFinPret(idPret, nouvelleDateHeure);
             
-            if (finsPret.isEmpty()) {
-                // Créer une nouvelle fin de prêt
-                finPret = new FinPret(nouvelleDateHeure, pret);
-            } else {
-                // Modifier la fin de prêt existante
-                finPret = finsPret.get(0);
-                finPret.setDateFin(nouvelleDateHeure);
+                redirectAttributes.addFlashAttribute("success", 
+                    "Le prêt a été prolongé avec succès jusqu'au " + 
+                    nouvelleDate.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+            
+             } catch (Exception e) {
+                redirectAttributes.addFlashAttribute("error", "Erreur lors du prolongement : " + e.getMessage());
             }
-            
-            finPretRepository.save(finPret);
-            
-            redirectAttributes.addFlashAttribute("success", 
-                "Le prêt de \"" + pret.getExemplaire().getLivre().getTitre() + 
-                "\" pour " + pret.getAdherant().getNomAdherant() + " " + pret.getAdherant().getPrenomAdherant() +
-                " a été prolongé jusqu'au " + nouvelleDate.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")));
-            
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Erreur lors du prolongement : " + e.getMessage());
         }
-        
         return "redirect:/Prolongement";
     }
 

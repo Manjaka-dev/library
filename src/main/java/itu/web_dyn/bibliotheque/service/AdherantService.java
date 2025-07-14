@@ -19,8 +19,9 @@ public class AdherantService {
     @Autowired 
     private InscriptionRepository inscriptionRepository;
 
-    public Adherant findById(Integer id){
-        return adherantRepository.findById(id).get();
+    public Adherant findById(Integer id) {
+        return adherantRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Adhérant non trouvé avec l’ID " + id));
     }
 
     public List<Adherant> findAll(){
@@ -29,10 +30,6 @@ public class AdherantService {
 
     public void save(Adherant adherant){
         adherantRepository.save(adherant);
-    }
-
-    public void deleteById(Integer id) {
-        adherantRepository.deleteById(id);
     }
 
     public boolean isActif(Integer adherantId, LocalDateTime datePret) {
@@ -44,5 +41,12 @@ public class AdherantService {
         return false;
     }
 
+    public Adherant authenticate(int idAdherant, String motDePasse) {
+        Adherant adherant = adherantRepository.findById(idAdherant).get();
+        if (adherant != null && adherant.getPassword().equals(motDePasse)) {
+            return adherant;
+        }
+        return null;
+    }
 
 }
