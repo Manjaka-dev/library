@@ -4,6 +4,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import jakarta.servlet.http.HttpSession;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -17,9 +19,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import itu.web_dyn.bibliotheque.entities.Adherant;
+import itu.web_dyn.bibliotheque.entities.Exemplaire;
 import itu.web_dyn.bibliotheque.entities.Livre;
 import itu.web_dyn.bibliotheque.entities.Reservation;
+import itu.web_dyn.bibliotheque.entities.StatutReservation;
 import itu.web_dyn.bibliotheque.service.AdherantService;
+import itu.web_dyn.bibliotheque.service.ExemplaireService;
 import itu.web_dyn.bibliotheque.service.LivreService;
 import itu.web_dyn.bibliotheque.service.ReservationService;
 import itu.web_dyn.bibliotheque.service.StatutReservationService;
@@ -41,6 +47,9 @@ public class ReservationController {
     @Autowired
     private StatutReservationService statutReservationService;
 
+    @Autowired
+    private ExemplaireService exemplaireService;
+
     // Liste des réservations
     @GetMapping
     public String listReservations(Model model) {
@@ -61,12 +70,40 @@ public class ReservationController {
 
     // Sauvegarde d'une réservation
     @PostMapping("/save")
-    public String saveReservation(@ModelAttribute Reservation reservation) {
-        if (reservation.getDateDeReservation() == null) {
-            reservation.setDateDeReservation(LocalDateTime.now());
+    public String saveReservation(@ModelAttribute Reservation reservation, RedirectAttributes redirectAttributes) {
+        try {
+            if (reservation.getDateDeReservation() == null) {
+                reservation.setDateDeReservation(LocalDateTime.now());
+            }
+            
+            // Si aucun exemplaire n'est assigné, en trouver un automatiquement
+            if (reservation.getExemplaire() == null && reservation.getLivre() != null) {
+                List<Exemplaire> exemplairesLivre = exemplaireService.findAllExemplaireByIdLivre(reservation.getLivre().getIdLivre());
+                Exemplaire exemplaireDisponible = null;
+                
+                for (Exemplaire exemplaire : exemplairesLivre) {
+                    if (exemplaireService.isExemplaireDisponible(exemplaire.getIdExemplaire(), reservation.getDateDeReservation())) {
+                        exemplaireDisponible = exemplaire;
+                        break;
+                    }
+                }
+                
+                if (exemplaireDisponible == null) {
+                    redirectAttributes.addFlashAttribute("error", "Aucun exemplaire disponible pour ce livre.");
+                    return "redirect:/reservations/new";
+                }
+                
+                reservation.setExemplaire(exemplaireDisponible);
+            }
+            
+            reservationService.save(reservation);
+            redirectAttributes.addFlashAttribute("success", "Réservation créée avec succès !");
+            return "redirect:/reservations";
+            
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Erreur lors de la création de la réservation : " + e.getMessage());
+            return "redirect:/reservations/new";
         }
-        reservationService.save(reservation);
-        return "redirect:/reservations";
     }
 
     // Formulaire d'édition
@@ -125,4 +162,111 @@ public class ReservationController {
         return "redirect:/livres/view/" + id_livre;
     }
 
+    // Formulaire de réservation simplifié pour les adhérents
+    @GetMapping("/adherant/new")
+    public String newReservationAdherant(Model model, HttpSession session,
+                                         @RequestParam(value = "livreId", required = false) Integer livreId) {
+        // Vérifier que c'est un adhérant connecté
+        String userType = (String) session.getAttribute("userType");
+        if (!"adherant".equals(userType)) {
+            return "redirect:/auth/login";
+        }
+        
+        model.addAttribute("livres", livreService.findAll());
+        if (livreId != null) {
+            model.addAttribute("selectedLivreId", livreId);
+        }
+        return "reservation/adherant-form";
+    }
+
+    // Sauvegarde de réservation par un adhérant (simplifié)
+    @PostMapping("/adherant/save")
+    public String saveReservationAdherant(@RequestParam("livreId") Integer livreId,
+                                         @RequestParam("dateReservation") LocalDate dateReservation,
+                                         HttpSession session,
+                                         RedirectAttributes redirectAttributes) {
+        try {
+            // Vérifier que c'est un adhérant connecté
+            String userType = (String) session.getAttribute("userType");
+            Adherant adherant = (Adherant) session.getAttribute("user");
+            
+            if (!"adherant".equals(userType) || adherant == null) {
+                redirectAttributes.addFlashAttribute("error", "Accès non autorisé.");
+                return "redirect:/auth/login";
+            }
+            
+            // Créer la réservation avec statut "En attente" (ID = 1)
+            LocalDateTime dateTime = UtilService.toDateTimeWithCurrentTime(dateReservation);
+            Livre livre = livreService.findById(livreId);
+            StatutReservation statutEnAttente = statutReservationService.findById(1); // En attente
+            
+            // Trouver un exemplaire disponible
+            List<Exemplaire> exemplairesLivre = exemplaireService.findAllExemplaireByIdLivre(livreId);
+            Exemplaire exemplaireDisponible = null;
+            for (Exemplaire exemplaire : exemplairesLivre) {
+                if (exemplaireService.isExemplaireDisponible(exemplaire.getIdExemplaire(), dateTime)) {
+                    exemplaireDisponible = exemplaire;
+                    break;
+                }
+            }
+            
+            if (exemplaireDisponible == null) {
+                redirectAttributes.addFlashAttribute("error", 
+                    "Aucun exemplaire disponible pour ce livre actuellement.");
+                return "redirect:/reservations/adherant/new";
+            }
+            
+            Reservation reservation = new Reservation();
+            reservation.setDateDeReservation(dateTime);
+            reservation.setLivre(livre);
+            reservation.setAdherant(adherant);
+            reservation.setStatut(statutEnAttente);
+            reservation.setExemplaire(exemplaireDisponible);
+            reservation.setAdmin(null); // Pas d'admin assigné pour l'instant
+            
+            reservationService.save(reservation);
+            
+            redirectAttributes.addFlashAttribute("success", 
+                "Votre réservation a été créée avec succès ! Elle est en attente de validation par un bibliothécaire.");
+            
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", 
+                "Erreur lors de la création de la réservation : " + e.getMessage());
+        }
+        
+        return "redirect:/reservations/adherant/new";
+    }
+    
+    // Valider une réservation et créer un prêt
+    @GetMapping("/valider/{id}")
+    public String validerReservation(@PathVariable Integer id, HttpSession session, RedirectAttributes redirectAttributes) {
+        try {
+            // Vérifier que c'est un admin
+            String userType = (String) session.getAttribute("userType");
+            if (!"admin".equals(userType)) {
+                redirectAttributes.addFlashAttribute("error", "Accès non autorisé.");
+                return "redirect:/reservations";
+            }
+            
+            Reservation reservation = reservationService.findById(id);
+            if (reservation == null) {
+                redirectAttributes.addFlashAttribute("error", "Réservation non trouvée.");
+                return "redirect:/reservations";
+            }
+            
+            // Vérifier que la réservation est en attente
+            if (!"En attente".equals(reservation.getStatut().getNomStatut())) {
+                redirectAttributes.addFlashAttribute("error", "Cette réservation ne peut plus être validée.");
+                return "redirect:/reservations/view/" + id;
+            }
+            
+            // Rediriger vers un formulaire de création de prêt pré-rempli
+            redirectAttributes.addFlashAttribute("reservation", reservation);
+            return "redirect:/prets/new-from-reservation?reservationId=" + id;
+            
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Erreur lors de la validation : " + e.getMessage());
+            return "redirect:/reservations/view/" + id;
+        }
+    }
 }

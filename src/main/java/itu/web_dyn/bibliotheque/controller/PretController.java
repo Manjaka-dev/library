@@ -18,6 +18,8 @@ import itu.web_dyn.bibliotheque.entities.Exemplaire;
 import itu.web_dyn.bibliotheque.entities.FinPret;
 import itu.web_dyn.bibliotheque.entities.Livre;
 import itu.web_dyn.bibliotheque.entities.Pret;
+import itu.web_dyn.bibliotheque.entities.Reservation;
+import itu.web_dyn.bibliotheque.entities.StatutReservation;
 import itu.web_dyn.bibliotheque.service.AdherantService;
 import itu.web_dyn.bibliotheque.service.ExemplaireService;
 import itu.web_dyn.bibliotheque.service.FinPretService;
@@ -25,6 +27,8 @@ import itu.web_dyn.bibliotheque.service.LivreService;
 import itu.web_dyn.bibliotheque.service.PenaliteService;
 import itu.web_dyn.bibliotheque.service.PretService;
 import itu.web_dyn.bibliotheque.service.QuotaTypePretService;
+import itu.web_dyn.bibliotheque.service.ReservationService;
+import itu.web_dyn.bibliotheque.service.StatutReservationService;
 import itu.web_dyn.bibliotheque.service.TypePretService;
 import itu.web_dyn.bibliotheque.service.UtilService;
 import jakarta.servlet.http.HttpSession;
@@ -64,6 +68,12 @@ public class PretController {
 
     @Autowired
     private FinPretService finPretService;
+
+    @Autowired
+    private ReservationService reservationService;
+
+    @Autowired
+    private StatutReservationService statutReservationService;
 
     private void preparePretPage(Model model) {
         model.addAttribute("livres", livreService.findAll());
@@ -259,7 +269,7 @@ public class PretController {
             return "redirect:/prets";
         }
         
-        model.addAttribute("pret", pret);
+        preparePretPageForEdit(model, id);
         model.addAttribute("userType", userType);
         return "pret/edit";
     }
@@ -307,4 +317,198 @@ public class PretController {
         return "redirect:/";
     }
 
+    // Modifier un prêt (traitement)
+    @PostMapping("/update")
+    public String updatePret(@RequestParam("idPret") Integer idPret,
+                            @RequestParam("adherantId") int adherantId,
+                            @RequestParam("typePret") int typePretId,  
+                            @RequestParam("livre") int livreId,
+                            @RequestParam("dateDebut") LocalDateTime dateDebut,
+                            @RequestParam("dateFin") LocalDate dateFin, 
+                            HttpSession session,
+                            Model model) {
+        // Seuls les admins peuvent modifier les prêts
+        String userType = (String) session.getAttribute("userType");
+        if (!"admin".equals(userType)) {
+            return "redirect:/prets";
+        }
+        
+        try {
+            Pret pret = pretService.findById(idPret);
+            if (pret == null) {
+                model.addAttribute("message", "Prêt non trouvé.");
+                return "redirect:/prets";
+            }
+            
+            // Vérifier l'adhérant
+            Adherant adherant = adherantService.findById(adherantId);
+            if (adherant == null) {
+                model.addAttribute("message", "Adhérant inexistant.");
+                preparePretPageForEdit(model, idPret);
+                return "pret/edit";
+            }
+            
+            // Vérifier le livre et les exemplaires
+            Livre livre = livreService.findById(livreId);
+            if (livre == null) {
+                model.addAttribute("message", "Livre inexistant.");
+                preparePretPageForEdit(model, idPret);
+                return "pret/edit";
+            }
+            
+            // Mettre à jour le prêt
+            Admin admin = (Admin) session.getAttribute("admin");
+            pret.setAdherant(adherant);
+            pret.setTypePret(typePretService.findById(typePretId));
+            pret.setDateDebut(dateDebut);
+            pret.setAdmin(admin);
+            
+            // Sauvegarder les modifications
+            pretService.save(pret);
+            
+            // Mettre à jour la date de fin si nécessaire
+            FinPret finPret = pretService.findFinPret(pret);
+            if (finPret != null) {
+                finPret.setDateFin(UtilService.toDateTimeWithCurrentTime(dateFin));
+                finPretService.save(finPret);
+            } else {
+                FinPret newFinPret = new FinPret(UtilService.toDateTimeWithCurrentTime(dateFin), pret);
+                finPretService.save(newFinPret);
+            }
+            
+            model.addAttribute("message", "Prêt modifié avec succès !");
+            return "redirect:/prets/view/" + idPret;
+            
+        } catch (Exception e) {
+            model.addAttribute("message", "Erreur lors de la modification : " + e.getMessage());
+            preparePretPageForEdit(model, idPret);
+            return "pret/edit";
+        }
+    }
+    
+    private void preparePretPageForEdit(Model model, Integer idPret) {
+        Pret pret = pretService.findById(idPret);
+        model.addAttribute("pret", pret);
+        model.addAttribute("livres", livreService.findAll());
+        model.addAttribute("adherants", adherantService.findAll());
+        model.addAttribute("typesPret", typePretService.findAll());
+    }
+
+    // Créer un prêt à partir d'une réservation
+    @GetMapping("/new-from-reservation")
+    public String newPretFromReservation(@RequestParam("reservationId") Integer reservationId, 
+                                        Model model, HttpSession session) {
+        // Vérifier les autorisations
+        String userType = (String) session.getAttribute("userType");
+        if (!"admin".equals(userType)) {
+            return "redirect:/prets?error=access-denied";
+        }
+        
+        try {
+            // Récupérer la réservation
+            Reservation reservation = reservationService.findById(reservationId);
+            if (reservation == null) {
+                model.addAttribute("message", "Réservation non trouvée.");
+                preparePretPage(model);
+                return "pret/form";
+            }
+            
+            // Pré-remplir le formulaire avec les données de la réservation
+            preparePretPage(model);
+            model.addAttribute("selectedAdherant", reservation.getAdherant().getIdAdherant());
+            model.addAttribute("selectedLivre", reservation.getLivre().getIdLivre());
+            model.addAttribute("reservationId", reservationId);
+            model.addAttribute("isFromReservation", true);
+            
+            return "pret/form-from-reservation";
+            
+        } catch (Exception e) {
+            model.addAttribute("message", "Erreur lors du chargement de la réservation : " + e.getMessage());
+            preparePretPage(model);
+            return "pret/form";
+        }
+    }
+    
+    // Sauvegarder un prêt créé à partir d'une réservation
+    @PostMapping("/save-from-reservation")
+    public String savePretFromReservation(@RequestParam("reservationId") Integer reservationId,
+                                         @RequestParam("typePret") int typePretId,  
+                                         @RequestParam("dateFin") LocalDate dateFin, 
+                                         HttpSession session,
+                                         Model model) {
+        try {
+            // Vérifier les autorisations
+            String userType = (String) session.getAttribute("userType");
+            if (!"admin".equals(userType)) {
+                return "redirect:/prets?error=access-denied";
+            }
+            
+            // Récupérer la réservation
+            Reservation reservation = reservationService.findById(reservationId);
+            if (reservation == null) {
+                model.addAttribute("message", "Réservation non trouvée.");
+                return "redirect:/reservations";
+            }
+            
+            Adherant adherant = reservation.getAdherant();
+            Livre livre = reservation.getLivre();
+            
+            // Effectuer les vérifications habituelles du prêt
+            boolean inscrit = adherantService.isActif(adherant.getIdAdherant(), LocalDateTime.now());
+            if (!inscrit) {
+                model.addAttribute("message", "Adhérant non inscrit ou inscription inactive.");
+                return "redirect:/reservations/view/" + reservationId;
+            }
+            
+            boolean penalise = penaliteService.isPenalise(LocalDateTime.now(), adherant.getIdAdherant()); 
+            if (penalise) {
+                model.addAttribute("message", "Adhérant pénalisé, prêt impossible.");
+                return "redirect:/reservations/view/" + reservationId;
+            }
+            
+            // Trouver un exemplaire disponible
+            List<Exemplaire> exemplaires = exemplaireService.findAllExemplaireByIdLivre(livre.getIdLivre());
+            Exemplaire exemplaireOpt = null;
+            
+            for (Exemplaire exemplaire : exemplaires) {
+                if (exemplaireService.isExemplaireDisponible(exemplaire.getIdExemplaire(), LocalDateTime.now(), 
+                    UtilService.toDateTimeWithCurrentTime(dateFin))) {
+                    exemplaireOpt = exemplaire;
+                    break;
+                }
+            }
+            
+            if (exemplaireOpt == null) {
+                model.addAttribute("message", "Il n'y a plus d'exemplaire disponible.");
+                return "redirect:/reservations/view/" + reservationId;
+            }
+            
+            // Créer le prêt
+            Admin admin = (Admin) session.getAttribute("admin");
+            Pret pret = new Pret();
+            pret.setAdherant(adherant);
+            pret.setAdmin(admin);
+            pret.setDateDebut(LocalDateTime.now());
+            pret.setExemplaire(exemplaireOpt);
+            pret.setTypePret(typePretService.findById(typePretId));
+            
+            FinPret finPret = new FinPret(UtilService.toDateTimeWithCurrentTime(dateFin), pret);
+            
+            // Sauvegarder le prêt
+            pretService.save(pret);
+            finPretService.save(finPret);
+            
+            // Mettre à jour le statut de la réservation à "Confirmée"
+            StatutReservation statutConfirme = statutReservationService.findById(2); // Confirmée
+            reservation.setStatut(statutConfirme);
+            reservation.setAdmin(admin);
+            reservationService.save(reservation);
+            
+            return "redirect:/prets/view/" + pret.getIdPret() + "?success=pret-created-from-reservation";
+            
+        } catch (Exception e) {
+            model.addAttribute("message", "Erreur lors de la création du prêt : " + e.getMessage());
+            return "redirect:/reservations/view/" + reservationId;
+        }
+    }
 }
