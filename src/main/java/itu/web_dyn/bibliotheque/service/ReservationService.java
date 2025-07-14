@@ -28,7 +28,8 @@ public class ReservationService {
     private ExemplaireService exemplaireService;
 
     public Reservation findById(Integer id){
-        return reservationRepository.findById(id).get();
+        return reservationRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Réservation non trouvée avec l'ID " + id));
     }
 
     public List<Reservation> findAll(){
@@ -63,7 +64,7 @@ public class ReservationService {
         Reservation resa = new Reservation(
             dateTime, 
             null, 
-            statutReservationService.findById(1), 
+            statutReservationService.findByNomStatut("En attente"), 
             livreService.findById(id_livre), 
             adherantService.findById(id_adherant),
             exemplaireDisponible

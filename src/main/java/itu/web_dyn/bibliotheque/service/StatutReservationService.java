@@ -14,7 +14,8 @@ public class StatutReservationService {
     private StatutReservationRepository statutReservationRepository;
 
     public StatutReservation findById(Integer id){
-        return statutReservationRepository.findById(id).get();
+        return statutReservationRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Statut de réservation non trouvé avec l'ID " + id));
     }
 
     public List<StatutReservation> findAll(){
@@ -23,5 +24,15 @@ public class StatutReservationService {
 
     public void save(StatutReservation statutReservation){
         statutReservationRepository.save(statutReservation);
+    }
+    
+    /**
+     * Trouve un statut par nom (plus robuste que par ID)
+     */
+    public StatutReservation findByNomStatut(String nomStatut) {
+        return findAll().stream()
+            .filter(statut -> nomStatut.equals(statut.getNomStatut()))
+            .findFirst()
+            .orElseThrow(() -> new RuntimeException("Statut de réservation non trouvé avec le nom " + nomStatut));
     }
 }
