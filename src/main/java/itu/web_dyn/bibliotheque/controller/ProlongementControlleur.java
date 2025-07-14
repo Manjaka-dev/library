@@ -63,19 +63,20 @@ public class ProlongementControlleur {
                 redirectAttributes.addFlashAttribute("error", "La nouvelle date doit être postérieure à aujourd'hui.");
                 return "redirect:/Prolongement";
             }
-
-        try {
-            // Utiliser le service pour prolonger le prêt
-            prolongementService.prolongerPretAvecFinPret(idPret, nouvelleDateHeure);
+            try {
+                // Utiliser le service pour prolonger le prêt
+                prolongementService.prolongerPretAvecFinPret(idPret, nouvelleDateHeure);
             
-            redirectAttributes.addFlashAttribute("success", 
-                "Le prêt a été prolongé avec succès jusqu'au " + 
-                nouvelleDate.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+                redirectAttributes.addFlashAttribute("success", 
+                    "Le prêt a été prolongé avec succès jusqu'au " + 
+                    nouvelleDate.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")));
             
+             } catch (Exception e) {
+                redirectAttributes.addFlashAttribute("error", "Erreur lors du prolongement : " + e.getMessage());
+            }
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Erreur lors du prolongement : " + e.getMessage());
         }
-        
         return "redirect:/Prolongement";
     }
 
