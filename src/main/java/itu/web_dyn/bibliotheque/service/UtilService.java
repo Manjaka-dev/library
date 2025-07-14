@@ -14,4 +14,9 @@ public class UtilService {
 
         return date.atTime(heureActuelle);
     }
+    
+    // Méthode manquante pour ajouter des jours à une LocalDateTime
+    public static LocalDateTime ajouterJours(LocalDateTime dateTime, int jours) {
+        return dateTime.plusDays(jours);
+    }
 }
