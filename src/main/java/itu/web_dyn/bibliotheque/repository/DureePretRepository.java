@@ -14,4 +14,8 @@ public interface DureePretRepository extends JpaRepository<DureePret, Integer> {
     
     @Query("SELECT dp FROM DureePret dp WHERE dp.profil.idProfil = :profilId")
     List<DureePret> findByProfilId(@Param("profilId") Integer profilId);
+    
+    // Méthode pour trouver une durée de prêt par profil (une seule occurrence)
+    @Query("SELECT dp FROM DureePret dp WHERE dp.profil.idProfil = :idProfil")
+    DureePret findByIdProfil(@Param("idProfil") Integer idProfil);
 }
