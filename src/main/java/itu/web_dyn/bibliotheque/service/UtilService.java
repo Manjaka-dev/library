@@ -14,9 +14,14 @@ public class UtilService {
 
         return date.atTime(heureActuelle);
     }
-    
-    // Méthode manquante pour ajouter des jours à une LocalDateTime
-    public static LocalDateTime ajouterJours(LocalDateTime dateTime, int jours) {
-        return dateTime.plusDays(jours);
+
+
+    public static boolean periodesSeChevauchent(LocalDateTime debut1, LocalDateTime fin1,
+                                                LocalDateTime debut2, LocalDateTime fin2) {
+        return !debut1.isAfter(fin2) && !debut2.isAfter(fin1);
+    }
+
+    public static LocalDateTime ajouterJours(LocalDateTime date, int nbJours) {
+        return date.plusDays(nbJours);
     }
 }

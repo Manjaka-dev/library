@@ -36,9 +36,6 @@ public class ProlongementService {
     @Autowired
     private ProlongementRepository prolongementRepository;
     
-    @Autowired
-    private FinPretService finPretService;
-
     // Méthodes utilisant l'entité Prolongement (pour la compatibilité)
     public List<Prolongement> findById(int idPret) {
         return prolongementRepository.findByPretId(idPret);
