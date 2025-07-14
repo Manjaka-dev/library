@@ -390,7 +390,16 @@ public class PretController {
             }
             
             // Mettre à jour le prêt
-            Admin admin = (Admin) session.getAttribute("admin");
+            Admin admin = null;
+            Object user = session.getAttribute("user");
+            if (user instanceof Admin && "admin".equals(userType)) {
+                admin = (Admin) user;
+            } else {
+                model.addAttribute("message", "Vous devez être connecté en tant qu'administrateur pour modifier un prêt.");
+                preparePretPageForEdit(model, idPret);
+                return "pret/edit";
+            }
+            
             pret.setAdherant(adherant);
             pret.setTypePret(typePretService.findById(typePretId));
             pret.setDateDebut(dateDebut);
@@ -466,7 +475,7 @@ public class PretController {
     @PostMapping("/save-from-reservation")
     public String savePretFromReservation(@RequestParam("reservationId") Integer reservationId,
                                          @RequestParam("typePret") int typePretId,  
-                                         @RequestParam("dateFin") LocalDate dateFin, 
+                                         @RequestParam("dateDebut") LocalDate dateDebut, 
                                          HttpSession session,
                                          Model model) {
         try {
@@ -485,6 +494,10 @@ public class PretController {
             
             Adherant adherant = reservation.getAdherant();
             Livre livre = reservation.getLivre();
+            TypePret typePret = typePretService.findById(typePretId);
+            
+            // Calculer automatiquement la date de fin basée sur le type de prêt
+            LocalDate dateFin = dateDebut.plusDays(typePret.getDureeJours());
             
             // Effectuer les vérifications habituelles du prêt
             boolean inscrit = adherantService.isActif(adherant.getIdAdherant(), LocalDateTime.now());
@@ -511,11 +524,17 @@ public class PretController {
             }
             
             // Vérifier les restrictions d'âge et de profil
+            System.out.println("==================== VERIFICATION RESTRICTIONS ====================");
             Boolean peutPreter = livreService.peutPreterLivre(adherant, livre);
+            System.out.println("Résultat vérification restrictions : " + peutPreter);
+            
             if (!peutPreter) {
+                System.out.println("❌ TRANSFORMATION REJETÉE - Restrictions non respectées");
                 model.addAttribute("message", "Vous ne pouvez pas emprunter ce livre à cause de votre âge ou du type de votre profil.");
                 return "redirect:/reservations/view/" + reservationId;
             }
+            
+            System.out.println("✅ RESTRICTIONS VALIDÉES - Transformation peut continuer");
             
             // Trouver un exemplaire disponible
             // Commencer par vérifier l'exemplaire de la réservation
@@ -524,14 +543,14 @@ public class PretController {
             // Vérifier d'abord si l'exemplaire de la réservation est disponible
             if (reservation.getExemplaire() != null && 
                 exemplaireService.isExemplaireDisponible(reservation.getExemplaire().getIdExemplaire(), 
-                LocalDateTime.now(), UtilService.toDateTimeWithCurrentTime(dateFin))) {
+                dateDebut.atStartOfDay(), dateFin.atStartOfDay())) {
                 exemplaireOpt = reservation.getExemplaire();
             } else {
                 // Sinon, chercher un autre exemplaire disponible
                 List<Exemplaire> exemplaires = exemplaireService.findAllExemplaireByIdLivre(livre.getIdLivre());
                 for (Exemplaire exemplaire : exemplaires) {
-                    if (exemplaireService.isExemplaireDisponible(exemplaire.getIdExemplaire(), LocalDateTime.now(), 
-                        UtilService.toDateTimeWithCurrentTime(dateFin))) {
+                    if (exemplaireService.isExemplaireDisponible(exemplaire.getIdExemplaire(), 
+                        dateDebut.atStartOfDay(), dateFin.atStartOfDay())) {
                         exemplaireOpt = exemplaire;
                         break;
                     }
@@ -543,24 +562,30 @@ public class PretController {
                 return "redirect:/reservations/view/" + reservationId;
             }
             
-            // Créer le prêt
-            Admin admin = (Admin) session.getAttribute("admin");
-            if (admin == null) {
-                model.addAttribute("message", "Session administrateur invalide. Veuillez vous reconnecter.");
-                return "redirect:/auth/login";
+            // Récupérer l'admin connecté depuis la session
+            Admin admin = null;
+            Object user = session.getAttribute("user");
+            
+            if (user instanceof Admin && "admin".equals(userType)) {
+                admin = (Admin) user;
+            } else {
+                model.addAttribute("message", "Vous devez être connecté en tant qu'administrateur pour créer un prêt.");
+                return "redirect:/login";
             }
+            
+            // Créer le prêt
             Pret pret = new Pret();
             pret.setAdherant(adherant);
             pret.setAdmin(admin);
-            pret.setDateDebut(LocalDateTime.now());
+            pret.setDateDebut(dateDebut.atStartOfDay());
             pret.setExemplaire(exemplaireOpt);
-            pret.setTypePret(typePretService.findById(typePretId));
+            pret.setTypePret(typePret);
             
             // Sauvegarder le prêt d'abord pour obtenir l'ID
             pretService.save(pret);
             
             // Créer et sauvegarder FinPret après que le Pret ait un ID
-            FinPret finPret = new FinPret(UtilService.toDateTimeWithCurrentTime(dateFin), pret);
+            FinPret finPret = new FinPret(dateFin.atStartOfDay(), pret);
             finPretService.save(finPret);
             
             // Mettre à jour le statut de la réservation à "Confirmée"
@@ -576,7 +601,7 @@ public class PretController {
             System.err.println("=== ERREUR TRANSFORMATION RESERVATION EN PRET ===");
             System.err.println("Reservation ID: " + reservationId);
             System.err.println("Type de prêt ID: " + typePretId);
-            System.err.println("Date de fin: " + dateFin);
+            System.err.println("Date de début: " + dateDebut);
             System.err.println("Message d'erreur: " + e.getMessage());
             System.err.println("Stack trace:");
             e.printStackTrace();
@@ -649,8 +674,14 @@ public class PretController {
             }
             
             // 7. Vérifier l'admin
-            Admin admin = (Admin) session.getAttribute("admin");
-            System.out.println("Admin en session: " + (admin != null ? admin.getNomAdmin() : "null"));
+            Admin admin = null;
+            Object user = session.getAttribute("user");
+            if (user instanceof Admin && "admin".equals(userType)) {
+                admin = (Admin) user;
+                System.out.println("Admin en session: " + admin.getNomAdmin());
+            } else {
+                System.out.println("❌ Admin non trouvé en session");
+            }
             
             System.out.println("=== FIN DEBUG ===");
             

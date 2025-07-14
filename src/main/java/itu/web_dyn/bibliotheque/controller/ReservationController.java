@@ -169,7 +169,7 @@ public class ReservationController {
         // Vérifier que c'est un adhérant connecté
         String userType = (String) session.getAttribute("userType");
         if (!"adherant".equals(userType)) {
-            return "redirect:/auth/login";
+            return "redirect:/login";
         }
         
         model.addAttribute("livres", livreService.findAll());
@@ -192,13 +192,21 @@ public class ReservationController {
             
             if (!"adherant".equals(userType) || adherant == null) {
                 redirectAttributes.addFlashAttribute("error", "Accès non autorisé.");
-                return "redirect:/auth/login";
+                return "redirect:/login";
             }
             
             // Créer la réservation avec statut "En attente"
             LocalDateTime dateTime = UtilService.toDateTimeWithCurrentTime(dateReservation);
             Livre livre = livreService.findById(livreId);
             StatutReservation statutEnAttente = statutReservationService.findByNomStatut("En attente");
+            
+            // Vérifier les restrictions d'âge et de profil AVANT de créer la réservation
+            Boolean peutPreter = livreService.peutPreterLivre(adherant, livre);
+            if (!peutPreter) {
+                redirectAttributes.addFlashAttribute("error", 
+                    "Vous ne pouvez pas réserver ce livre à cause de votre âge ou du type de votre profil.");
+                return "redirect:/reservations/adherant/new";
+            }
             
             // Trouver un exemplaire disponible
             List<Exemplaire> exemplairesLivre = exemplaireService.findAllExemplaireByIdLivre(livreId);

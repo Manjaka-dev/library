@@ -157,18 +157,32 @@
                                             </div>
                                         </div>
 
+                                        <!-- Date de début -->
+                                        <div class="col-md-6 mb-3">
+                                            <div class="form-floating">
+                                                <input type="date" class="form-control" id="dateDebut" 
+                                                       name="dateDebut" required>
+                                                <label for="dateDebut">
+                                                    <i class="fas fa-calendar-plus text-success"></i> Date de début *
+                                                </label>
+                                                <div class="form-text">
+                                                    Date de début du prêt
+                                                </div>
+                                                <div class="invalid-feedback">Veuillez indiquer la date de début.</div>
+                                            </div>
+                                        </div>
+                                        
                                         <!-- Date de fin -->
                                         <div class="col-md-6 mb-3">
                                             <div class="form-floating">
                                                 <input type="date" class="form-control" id="dateFin" 
-                                                       name="dateFin" required>
+                                                       name="dateFin" readonly>
                                                 <label for="dateFin">
-                                                    <i class="fas fa-calendar-minus text-danger"></i> Date de retour *
+                                                    <i class="fas fa-calendar-minus text-danger"></i> Date de fin (calculée automatiquement)
                                                 </label>
                                                 <div class="form-text">
-                                                    Date limite de retour du livre
+                                                    Date calculée automatiquement selon le type de prêt
                                                 </div>
-                                                <div class="invalid-feedback">Veuillez indiquer la date de retour.</div>
                                             </div>
                                         </div>
                                     </div>
@@ -239,20 +253,44 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Définir la date minimale à aujourd'hui
+        // Définir la date de début minimale à aujourd'hui
         document.addEventListener('DOMContentLoaded', function() {
             const today = new Date();
-            const tomorrow = new Date(today);
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            const tomorrowString = tomorrow.toISOString().split('T')[0];
+            const todayString = today.toISOString().split('T')[0];
             
-            document.getElementById('dateFin').min = tomorrowString;
+            document.getElementById('dateDebut').min = todayString;
+            document.getElementById('dateDebut').value = todayString;
             
-            // Définir une date par défaut (dans 2 semaines)
-            const twoWeeksLater = new Date(today);
-            twoWeeksLater.setDate(twoWeeksLater.getDate() + 14);
-            const twoWeeksString = twoWeeksLater.toISOString().split('T')[0];
-            document.getElementById('dateFin').value = twoWeeksString;
+            // Calculer automatiquement la date de fin quand le type ou la date de début change
+            function calculateEndDate() {
+                const dateDebut = document.getElementById('dateDebut').value;
+                const typePretSelect = document.getElementById('typePret');
+                
+                if (dateDebut && typePretSelect.value) {
+                    fetch('/prets/api/type-pret/' + typePretSelect.value + '/duree')
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.duree) {
+                                const startDate = new Date(dateDebut);
+                                const endDate = new Date(startDate);
+                                endDate.setDate(startDate.getDate() + data.duree);
+                                
+                                const endDateString = endDate.toISOString().split('T')[0];
+                                document.getElementById('dateFin').value = endDateString;
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Erreur lors du calcul de la date de fin:', error);
+                        });
+                }
+            }
+            
+            // Écouter les changements
+            document.getElementById('dateDebut').addEventListener('change', calculateEndDate);
+            document.getElementById('typePret').addEventListener('change', calculateEndDate);
+            
+            // Calculer initial si des valeurs sont déjà sélectionnées
+            calculateEndDate();
         });
 
         // Validation Bootstrap
