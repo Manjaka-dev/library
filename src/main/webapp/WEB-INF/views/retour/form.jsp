@@ -72,7 +72,7 @@
                                             <c:forEach var="type" items="${typesRetour}">
                                                 <option value="${type.idTypeRetour}" 
                                                         <c:if test="${retour.typeRetour.idTypeRetour == type.idTypeRetour}">selected</c:if>>
-                                                    ${type.nom}
+                                                    ${type.nomTypeRetour}
                                                 </option>
                                             </c:forEach>
                                         </select>
