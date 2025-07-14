@@ -3,6 +3,7 @@ package itu.web_dyn.bibliotheque.service;
 import org.springframework.stereotype.Service;
 
 import itu.web_dyn.bibliotheque.entities.Exemplaire;
+import itu.web_dyn.bibliotheque.entities.FinPret;
 import itu.web_dyn.bibliotheque.entities.Pret;
 import itu.web_dyn.bibliotheque.entities.Retour;
 import itu.web_dyn.bibliotheque.repository.ExemplaireRepository;
@@ -56,20 +57,22 @@ public class ExemplaireService {
 
             Retour retour = pretService.findRetourPret(pret);
             if (retour != null) {
-                System.out.println("----------- RETOUR NOT NULL ----------------");
+                // Le livre a été retourné, utiliser la date de retour
                 dateFinPretOuRetour = retour.getDateRetour();
             } else {
-                System.out.println("----------- RETOUR NOT NULL ----------------");
-
-                return false;
-                // FinPret finpret = pretService.findFinPret(pret);
-                // if (finpret != null) {
-                // dateFinPretOuRetour = finpret.getDateFin();
-                // }
+                // Pas de retour, vérifier la date de fin prévue du prêt
+                FinPret finpret = pretService.findFinPret(pret);
+                if (finpret != null) {
+                    dateFinPretOuRetour = finpret.getDateFin();
+                } else {
+                    // Pas de fin prévue, considérer le prêt comme indéfini
+                    return false;
+                }
             }
 
             if (dateFinPretOuRetour == null) return false;
 
+            // Vérifier si les périodes se chevauchent
             if (UtilService.periodesSeChevauchent(dateDebutPret, dateFinPretOuRetour, dateDebut, dateFin)) {
                 return false;
             }
@@ -90,19 +93,20 @@ public class ExemplaireService {
         for (Pret pret : prets) {
             Retour retour = pretService.findRetourPret(pret);
 
-            // Si aucun retour => prêt toujours en cours => exemplaire indisponible
             if (retour == null) {
-                return false;
-            }
-
-            // FinPret finPret = pretService.findFinPret(pret);
-
-            // Si on a le retour, on vérifie qu'il est bien revenu avant la fin prévue
-            if (retour != null && retour.getDateRetour().isBefore(dateDebut)) {
-                // continue; // exemplaire peut être dispo pour ce prêt-là
-                return true;
+                // Pas de retour, vérifier si le prêt est encore en cours
+                FinPret finPret = pretService.findFinPret(pret);
+                if (finPret != null && finPret.getDateFin().isAfter(dateDebut)) {
+                    // Prêt encore en cours au moment voulu
+                    return false;
+                }
+                // Si pas de FinPret ou si la date de fin est passée, continuer à vérifier les autres prêts
             } else {
-                return false; // retour trop tard ou pas de fin prévue => indispo
+                // Il y a eu un retour, vérifier si le retour s'est fait après la date voulue
+                if (retour.getDateRetour().isAfter(dateDebut)) {
+                    // Le livre était encore emprunté à la date voulue
+                    return false;
+                }
             }
         }
 

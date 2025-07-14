@@ -1,6 +1,7 @@
 package itu.web_dyn.bibliotheque.entities;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -107,5 +108,27 @@ public class Pret {
     
     public void setAdherant(Adherant adherant) {
         this.adherant = adherant;
+    }
+    
+    // Méthodes pour formatage des dates
+    public String getDateDebutFormattee() {
+        if (dateDebut != null) {
+            return dateDebut.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+        }
+        return "";
+    }
+    
+    public String getDateDebutFormatteeLongue() {
+        if (dateDebut != null) {
+            return dateDebut.format(DateTimeFormatter.ofPattern("dd/MM/yyyy 'à' HH:mm"));
+        }
+        return "";
+    }
+    
+    public String getDateDebutFormatteeCourte() {
+        if (dateDebut != null) {
+            return dateDebut.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+        }
+        return "";
     }
 }

@@ -42,11 +42,11 @@
                                     <c:forEach var="pret" items="${pretsEnCours}">
                                         <option value="${pret.idPret}" data-adherant="${pret.adherant.nomAdherant} ${pret.adherant.prenomAdherant}" 
                                                 data-livre="${pret.exemplaire.livre.titre}" 
-                                                data-debut="<fmt:formatDate value='${pret.dateDebut}' pattern='dd/MM/yyyy'/>"
-                                                data-fin="<fmt:formatDate value='${pret.dateFin}' pattern='dd/MM/yyyy'/>">
+                                                data-debut="${pret.dateDebutFormattee}"
+                                                data-fin="${pret.dateFinFormattee}">
                                             ${pret.adherant.nomAdherant} ${pret.adherant.prenomAdherant} - 
                                             ${pret.exemplaire.livre.titre} 
-                                            (Fin: <fmt:formatDate value="${pret.dateFin}" pattern="dd/MM/yyyy"/>)
+                                            (Fin: ${pret.dateFinFormattee})
                                         </option>
                                     </c:forEach>
                                 </select>

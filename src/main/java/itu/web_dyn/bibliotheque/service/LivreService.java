@@ -53,7 +53,9 @@ public class LivreService {
         for (Categorie categorie : livre.getCategories()) {
             boolean restreint = restrictionCategorieRepository.existsRestriction(
                 categorie.getIdCategorie(), adherant.getProfil().getIdProfil());
-            if (!restreint) {
+            if (restreint) {
+                System.out.println("❌ Restriction trouvée : Profil '" + adherant.getProfil().getNomProfil() + 
+                    "' ne peut pas emprunter la catégorie '" + categorie.getNomCategorie() + "'");
                 return false;
             }
         }
@@ -62,9 +64,11 @@ public class LivreService {
         LocalDate naissance = adherant.getDateNaissance();
         int age = Period.between(naissance, LocalDate.now()).getYears();
         if (livre.getAgeRequis() != null && age < livre.getAgeRequis()) {
+            System.out.println("❌ Restriction d'âge : Adhérant (" + age + " ans) trop jeune pour ce livre (âge requis: " + livre.getAgeRequis() + " ans)");
             return false;
         }
 
+        System.out.println("✅ Aucune restriction : Adhérant peut emprunter ce livre");
         return true;
     }
 }

@@ -1,5 +1,14 @@
 -- Script de génération de données fictives pour le système de bibliothèque
--- Basé sur les entités Java actuelles
+-- Basé sur les entité-- 6. Types de prêt avec durées (7 types)
+-- Les durées sont en jours et reflètent les besoins de chaque type d'utilisateur
+INSERT INTO type_pret (type, duree_jours) VALUES
+('Standard', 14),        -- 2 semaines : durée classique pour le grand public
+('Court terme', 7),      -- 1 semaine : pour les emprunts rapides ou très demandés
+('Long terme', 30),      -- 1 mois : pour les ouvrages spécialisés ou volumineux
+('Prêt Étudiant', 21),   -- 3 semaines : adapté au rythme scolaire et universitaire
+('Prêt Enseignant', 45), -- 6-7 semaines : pour préparation de cours et recherche
+('Prêt Express', 3),     -- 3 jours : consultation rapide, magazines, guides
+('Prêt Recherche', 60);  -- 2 mois : pour travaux de recherche approfondistuelles
 -- Date de création : 14 juillet 2025
 
 -- Nettoyage des données existantes (dans l'ordre inverse des dépendances)
@@ -97,10 +106,14 @@ INSERT INTO admin (nom_admin, prenom_admin, password) VALUES
 ('Durand', 'Sophie', 'admin789');
 
 -- 6. Type de prêt (3 types)
-INSERT INTO type_pret (type) VALUES
-('Standard'),
-('Court terme'),
-('Long terme');
+INSERT INTO type_pret (type, duree_jours) VALUES
+('Standard', 14),
+('Court terme', 7),
+('Long terme', 30),
+('Prêt Étudiant', 21),
+('Prêt Enseignant', 45),
+('Prêt Express', 3),
+('Prêt Recherche', 60);
 
 -- 7. Statut de réservation (4 statuts)
 INSERT INTO statut_reservation (nom_statut) VALUES
@@ -122,18 +135,34 @@ INSERT INTO quota_type_pret (id_profil, id_type_pret, quota) VALUES
 (1, 1, 3), -- Standard: 3
 (1, 2, 2), -- Court terme: 2
 (1, 3, 1), -- Long terme: 1
+(1, 4, 5), -- Prêt Étudiant: 5
+(1, 5, 0), -- Prêt Enseignant: 0 (réservé aux enseignants)
+(1, 6, 3), -- Prêt Express: 3
+(1, 7, 1), -- Prêt Recherche: 1
 -- Enseignant  
 (2, 1, 6), -- Standard: 6
 (2, 2, 3), -- Court terme: 3
 (2, 3, 2), -- Long terme: 2
+(2, 4, 4), -- Prêt Étudiant: 4
+(2, 5, 8), -- Prêt Enseignant: 8
+(2, 6, 5), -- Prêt Express: 5
+(2, 7, 3), -- Prêt Recherche: 3
 -- Chercheur
 (3, 1, 10), -- Standard: 10
 (3, 2, 5),  -- Court terme: 5
 (3, 3, 3),  -- Long terme: 3
+(3, 4, 6),  -- Prêt Étudiant: 6
+(3, 5, 10), -- Prêt Enseignant: 10
+(3, 6, 8),  -- Prêt Express: 8
+(3, 7, 15), -- Prêt Recherche: 15 (priorité recherche)
 -- Grand Public
 (4, 1, 2), -- Standard: 2
 (4, 2, 1), -- Court terme: 1
-(4, 3, 0); -- Long terme: 0
+(4, 3, 0), -- Long terme: 0
+(4, 4, 0), -- Prêt Étudiant: 0
+(4, 5, 0), -- Prêt Enseignant: 0
+(4, 6, 2), -- Prêt Express: 2
+(4, 7, 0); -- Prêt Recherche: 0
 
 -- ===== ADHÉRENTS =====
 
@@ -298,28 +327,48 @@ INSERT INTO exemplaire (id_livre) VALUES
 
 -- ===== INSCRIPTIONS =====
 
--- 14. Inscriptions des adhérents (tous actifs)
-INSERT INTO inscription (date_debut, date_fin, etat, id_adherant) VALUES
-('2024-01-15', '2025-01-15', 'Actif', 1),
-('2024-02-20', '2025-02-20', 'Actif', 2),
-('2023-09-01', '2024-09-01', 'Actif', 3),
-('2023-11-10', '2024-11-10', 'Actif', 4),
-('2023-06-15', '2024-06-15', 'Actif', 5),
-('2024-03-08', '2025-03-08', 'Actif', 6),
-('2023-12-01', '2024-12-01', 'Actif', 7),
-('2024-04-12', '2025-04-12', 'Actif', 8),
-('2023-08-20', '2024-08-20', 'Actif', 9),
-('2024-05-25', '2025-05-25', 'Actif', 10),
-('2024-01-30', '2025-01-30', 'Actif', 11),
-('2023-10-15', '2024-10-15', 'Actif', 12),
-('2024-02-14', '2025-02-14', 'Actif', 13),
-('2023-07-22', '2024-07-22', 'Actif', 14),
-('2024-06-03', '2025-06-03', 'Actif', 15),
-('2023-11-28', '2024-11-28', 'Actif', 16),
-('2024-04-07', '2025-04-07', 'Actif', 17),
-('2023-09-12', '2024-09-12', 'Actif', 18),
-('2024-03-17', '2025-03-17', 'Actif', 19),
-('2024-01-09', '2025-01-09', 'Actif', 20);
+-- 14. Inscriptions des adhérents (tous actifs pour juillet 2025)
+-- Date actuelle : 14 juillet 2025 - Toutes les inscriptions sont valides à cette date
+INSERT INTO inscription (date_debut, date_fin, id_adherant) VALUES
+-- Inscriptions commencées en 2024 et se terminant en fin 2025 ou 2026
+('2024-06-01 00:00:00', '2025-12-31 23:59:59', 1),  -- Dupont Jean (Étudiant) - Actif jusqu'à fin 2025
+('2024-07-15 00:00:00', '2026-01-15 23:59:59', 2),  -- Moreau Alice (Étudiant) - Actif jusqu'à janvier 2026
+('2024-05-01 00:00:00', '2025-11-01 23:59:59', 3),  -- Bernard Paul (Enseignant) - Actif jusqu'à novembre 2025
+('2024-08-10 00:00:00', '2026-02-10 23:59:59', 4),  -- Petit Emma (Enseignant) - Actif jusqu'à février 2026
+('2024-04-15 00:00:00', '2025-10-15 23:59:59', 5),  -- Robert Lucas (Chercheur) - Actif jusqu'à octobre 2025
+
+-- Inscriptions commencées en 2025 et se terminant en 2026
+('2025-01-01 00:00:00', '2026-06-01 23:59:59', 6),  -- Richard Julie (Étudiant) - Actif jusqu'à juin 2026
+('2025-02-01 00:00:00', '2026-08-01 23:59:59', 7),  -- Michel Antoine (Enseignant) - Actif jusqu'à août 2026
+('2025-03-01 00:00:00', '2026-09-01 23:59:59', 8),  -- Garcia Sofia (Étudiant) - Actif jusqu'à septembre 2026
+('2025-01-15 00:00:00', '2026-07-15 23:59:59', 9),  -- David Thomas (Chercheur) - Actif jusqu'à juillet 2026
+('2025-04-01 00:00:00', '2026-10-01 23:59:59', 10), -- Bertrand Camille (Grand Public) - Actif jusqu'à octobre 2026
+
+-- Inscriptions récentes (commencées en juin/juillet 2025)
+('2025-06-01 00:00:00', '2026-12-01 23:59:59', 11), -- Roux Alexandre (Étudiant) - Actif jusqu'à décembre 2026
+('2025-06-15 00:00:00', '2026-12-15 23:59:59', 12), -- Vincent Léa (Enseignant) - Actif jusqu'à décembre 2026
+('2025-07-01 00:00:00', '2027-01-01 23:59:59', 13), -- Leroy Hugo (Étudiant) - Actif jusqu'à janvier 2027
+('2025-05-15 00:00:00', '2026-11-15 23:59:59', 14), -- Fournier Chloé (Grand Public) - Actif jusqu'à novembre 2026
+('2025-07-10 00:00:00', '2027-01-10 23:59:59', 15), -- Girard Maxime (Étudiant) - Actif jusqu'à janvier 2027
+
+-- Inscriptions très récentes (juillet 2025)
+('2025-07-01 00:00:00', '2026-07-01 23:59:59', 16), -- Andre Manon (Enseignant) - Actif 1 an
+('2025-07-05 00:00:00', '2026-07-05 23:59:59', 17), -- Lefebvre Nathan (Étudiant) - Actif 1 an  
+('2025-06-20 00:00:00', '2026-06-20 23:59:59', 18), -- Lambert Océane (Chercheur) - Actif 1 an
+('2025-07-12 00:00:00', '2026-07-12 23:59:59', 19), -- Lopez Julien (Grand Public) - Actif 1 an
+('2025-07-01 00:00:00', '2026-07-01 23:59:59', 20); -- Martin Inès (Enseignant) - Actif 1 an
+
+-- ===== ADHÉRENTS SUPPLÉMENTAIRES POUR TESTS =====
+
+-- Ajout d'adhérents avec inscriptions expirées (pour tester les validations)
+INSERT INTO adherant (numero_adherant, nom_adherant, prenom_adherant, password, date_naissance, id_profil) VALUES
+(1021, 'Teste', 'Expire', 'pass818', '1995-03-12', 1),
+(1022, 'Inactive', 'Marie', 'pass919', '1990-08-05', 4);
+
+-- Inscriptions expirées pour tests
+INSERT INTO inscription (date_debut, date_fin, id_adherant) VALUES
+('2024-01-01 00:00:00', '2025-01-01 23:59:59', 21), -- Teste Expire - EXPIRÉ (fin janvier 2025)
+('2023-06-01 00:00:00', '2024-06-01 23:59:59', 22); -- Inactive Marie - EXPIRÉ (fin juin 2024)
 
 -- ===== RESTRICTIONS =====
 

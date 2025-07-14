@@ -40,7 +40,7 @@
                             </div>
                         </c:if>
 
-                        <form action="/prets/save" method="post" class="needs-validation" novalidate>
+                        <form action="/prets/preter" method="post" class="needs-validation" novalidate>
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">
@@ -67,10 +67,15 @@
                                         <select class="form-select" id="typePret" name="typePret" required>
                                             <option value="">-- Sélectionner un type --</option>
                                             <c:forEach var="type" items="${typesPret}">
-                                                <option value="${type.idTypePret}">${type.type}</option>
+                                                <option value="${type.idTypePret}" data-duree="${type.dureeJours}">
+                                                    ${type.type} (${type.dureeJours} jours)
+                                                </option>
                                             </c:forEach>
                                         </select>
                                         <div class="invalid-feedback">Veuillez sélectionner un type de prêt.</div>
+                                        <div id="dureeInfo" class="form-text text-primary d-none">
+                                            <i class="fas fa-clock"></i> Durée du prêt : <span id="dureeDays"></span> jours
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -91,6 +96,21 @@
                                             </c:forEach>
                                         </select>
                                         <div class="invalid-feedback">Veuillez sélectionner un livre.</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="dateDebut" class="form-label">
+                                            <i class="fas fa-calendar text-success"></i> Date de début de prêt *
+                                        </label>
+                                        <input type="date" class="form-control" id="dateDebut" name="dateDebut" required>
+                                        <div class="invalid-feedback">Veuillez sélectionner une date de début.</div>
+                                        <small class="form-text text-muted">
+                                            La date de fin sera automatiquement calculée selon le type de prêt choisi.
+                                        </small>
                                     </div>
                                 </div>
                             </div>
@@ -199,15 +219,62 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
     <script>
-        // Définir la date minimale à aujourd'hui
+        // Définir la date minimale à aujourd'hui et gérer le calcul automatique
         document.addEventListener('DOMContentLoaded', function() {
             const today = new Date();
-            const tomorrow = new Date(today);
-            tomorrow.setDate(tomorrow.getDate() + 1);
+            const dateDebutInput = document.getElementById('dateDebut');
+            const typePretSelect = document.getElementById('typePret');
+            const dureeInfo = document.getElementById('dureeInfo');
+            const dureeDays = document.getElementById('dureeDays');
             
-            // Définir une date par défaut (14 jours plus tard)
-            const defaultDate = new Date(today);
-            defaultDate.setDate(defaultDate.getDate() + 14);
+            // Définir la date minimale à aujourd'hui
+            dateDebutInput.min = today.toISOString().split('T')[0];
+            
+            // Définir la date par défaut à aujourd'hui
+            dateDebutInput.value = today.toISOString().split('T')[0];
+            
+            // Fonction pour calculer et afficher la date de fin
+            function calculateEndDate() {
+                const startDate = dateDebutInput.value;
+                const selectedType = typePretSelect.options[typePretSelect.selectedIndex];
+                
+                if (startDate && selectedType.value) {
+                    const duree = parseInt(selectedType.dataset.duree);
+                    const startDateObj = new Date(startDate);
+                    const endDateObj = new Date(startDateObj);
+                    endDateObj.setDate(startDateObj.getDate() + duree);
+                    
+                    dureeDays.textContent = duree;
+                    dureeInfo.classList.remove('d-none');
+                    
+                    // Ajouter un élément pour afficher la date de fin calculée
+                    let dateFinPreview = document.getElementById('dateFinPreview');
+                    if (!dateFinPreview) {
+                        dateFinPreview = document.createElement('div');
+                        dateFinPreview.id = 'dateFinPreview';
+                        dateFinPreview.className = 'form-text text-success';
+                        dureeInfo.parentNode.appendChild(dateFinPreview);
+                    }
+                    
+                    const endDateStr = endDateObj.toLocaleDateString('fr-FR', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+                    
+                    dateFinPreview.innerHTML = '<i class="fas fa-calendar-check"></i> Date de fin prévue : <strong>' + endDateStr + '</strong>';
+                } else {
+                    dureeInfo.classList.add('d-none');
+                    const dateFinPreview = document.getElementById('dateFinPreview');
+                    if (dateFinPreview) {
+                        dateFinPreview.remove();
+                    }
+                }
+            }
+            
+            // Écouter les changements
+            typePretSelect.addEventListener('change', calculateEndDate);
+            dateDebutInput.addEventListener('change', calculateEndDate);
         });
     </script>
 </body>

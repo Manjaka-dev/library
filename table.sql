@@ -37,6 +37,7 @@ CREATE TABLE admin(
 CREATE TABLE type_pret(
    id_type_pret INT,
    type VARCHAR(50),
+   duree_jours INT,
    PRIMARY KEY(id_type_pret)
 );
 
@@ -49,9 +50,8 @@ CREATE TABLE duree_pret(
 );
 
 CREATE TABLE statut_reservation(
-   id_statut_reservation COUNTER,
-   nom_statut VARCHAR(50),
-   PRIMARY KEY(id_statut_reservation)
+   id_statut_reservation SERIAL PRIMARY KEY,
+   nom_statut VARCHAR(50)
 );
 
 CREATE TABLE livre(
@@ -119,15 +119,18 @@ CREATE TABLE pret(
 );
 
 CREATE TABLE reservation(
-   id_reservation INT,
-   date_de_reservation DATETIME,
-   id_admin INT NOT NULL,
+   id_reservation SERIAL PRIMARY KEY,
+   date_de_reservation TIMESTAMP,
+   id_admin INT,
    id_exemplaire INT NOT NULL,
    id_adherant INT NOT NULL,
-   PRIMARY KEY(id_reservation),
+   id_livre INT NOT NULL,
+   id_statut INT NOT NULL,
    FOREIGN KEY(id_admin) REFERENCES admin(id_admin),
    FOREIGN KEY(id_exemplaire) REFERENCES exemplaire(id_exemplaire),
-   FOREIGN KEY(id_adherant) REFERENCES adherant(id_adherant)
+   FOREIGN KEY(id_adherant) REFERENCES adherant(id_adherant),
+   FOREIGN KEY(id_livre) REFERENCES livre(id_livre),
+   FOREIGN KEY(id_statut) REFERENCES statut_reservation(id_statut_reservation)
 );
 
 CREATE TABLE fin_pret(
@@ -163,10 +166,4 @@ CREATE TABLE quota_type_pret(
    FOREIGN KEY(id_type_pret) REFERENCES type_pret(id_type_pret)
 );
 
-CREATE TABLE reservation_statut(
-   id_reservation INT,
-   id_statut_reservation INT,
-   PRIMARY KEY(id_reservation, id_statut_reservation),
-   FOREIGN KEY(id_reservation) REFERENCES reservation(id_reservation),
-   FOREIGN KEY(id_statut_reservation) REFERENCES statut_reservation(id_statut_reservation)
-);
+

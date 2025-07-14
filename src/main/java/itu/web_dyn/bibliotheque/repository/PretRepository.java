@@ -27,4 +27,7 @@ public interface PretRepository extends JpaRepository<Pret, Integer> {
     @Query(value = "SELECT * FROM pret p WHERE p.id_exemplaire = :idExemplaire", nativeQuery = true)
     List<Pret> findByIdExemplaire(@Param("idExemplaire") Integer id_exemplaire);
     
+    @Query("SELECT p FROM Pret p WHERE p.adherant.idAdherant = :idAdherant ORDER BY p.dateDebut DESC")
+    List<Pret> findByAdherantIdAdherant(@Param("idAdherant") Integer idAdherant);
+    
 }

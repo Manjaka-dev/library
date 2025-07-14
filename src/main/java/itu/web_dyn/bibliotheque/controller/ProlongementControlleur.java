@@ -122,5 +122,20 @@ public class ProlongementControlleur {
         public itu.web_dyn.bibliotheque.entities.Exemplaire getExemplaire() { return pret.getExemplaire(); }
         public LocalDateTime getDateDebut() { return pret.getDateDebut(); }
         public Date getDateFin() { return java.sql.Timestamp.valueOf(dateFin); }
+        
+        // Méthodes pour formatage des dates
+        public String getDateDebutFormattee() {
+            if (pret.getDateDebut() != null) {
+                return pret.getDateDebut().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+            }
+            return "";
+        }
+        
+        public String getDateFinFormattee() {
+            if (dateFin != null) {
+                return dateFin.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+            }
+            return "";
+        }
     }
 }

@@ -81,7 +81,7 @@
                                     <tr>
                                         <th>Date de prêt :</th>
                                         <td>
-                                            <fmt:formatDate value="${pret.datePret}" pattern="dd/MM/yyyy 'à' HH:mm"/>
+                                            ${pret.dateDebutFormatteeLongue}
                                         </td>
                                     </tr>
                                     <tr>

@@ -14,7 +14,7 @@ public class RestrictionCategorieService {
     @Autowired
     private RestrictionCategorieRepository restrictionCategorieRepository;
 
-    public int isRestreint(Integer idCategorie, Integer idProfil) {
+    public boolean isRestreint(Integer idCategorie, Integer idProfil) {
         return restrictionCategorieRepository.existsRestriction(idCategorie, idProfil);
     }
 

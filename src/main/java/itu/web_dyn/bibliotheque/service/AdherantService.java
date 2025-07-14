@@ -34,10 +34,19 @@ public class AdherantService {
 
     public boolean isActif(Integer adherantId, LocalDateTime datePret) {
         Inscription inscription = inscriptionRepository.findLastByAdherantId(adherantId);
+        if (inscription == null) {
+            System.out.println("❌ Aucune inscription trouvée pour l'adhérant ID: " + adherantId);
+            return false;
+        }
+        
         if (datePret.isAfter(inscription.getDateDebut()) && datePret.isBefore(inscription.getDateFin())) {
+            System.out.println("✅ Adhérant actif - inscription valide du " + inscription.getDateDebut() + " au " + inscription.getDateFin());
             return true;
         }
         
+        System.out.println("❌ Adhérant inactif - inscription expirée ou pas encore commencée");
+        System.out.println("   Date prêt demandée: " + datePret);
+        System.out.println("   Inscription valide du " + inscription.getDateDebut() + " au " + inscription.getDateFin());
         return false;
     }
 
