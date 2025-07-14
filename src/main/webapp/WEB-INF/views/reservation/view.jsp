@@ -147,6 +147,16 @@
                             </div>
                             <div class="card-body">
                                 <div class="d-grid gap-2">
+                                    <!-- Bouton Valider pour les admins si le statut est "En attente" -->
+                                    <c:if test="${sessionScope.userType == 'admin' && reservation.statut.nomStatut == 'En attente'}">
+                                        <a href="/reservations/valider/${reservation.idReservation}" 
+                                           class="btn btn-success"
+                                           onclick="return confirm('Êtes-vous sûr de vouloir valider cette réservation et créer un prêt ?')">
+                                            <i class="fas fa-check"></i> Valider et créer le prêt
+                                        </a>
+                                        <hr>
+                                    </c:if>
+                                    
                                     <a href="/reservations/edit/${reservation.idReservation}" class="btn btn-warning">
                                         <i class="fas fa-edit"></i> Modifier
                                     </a>
