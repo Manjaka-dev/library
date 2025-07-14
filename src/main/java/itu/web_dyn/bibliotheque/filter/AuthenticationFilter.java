@@ -36,7 +36,9 @@ public class AuthenticationFilter implements Filter {
         "/favicon.ico",
         "/webjars/",
         "/static/",
-        "/error"
+        "/error",
+        "/livres",              // Consultation du catalogue (lecture seule)
+        "/livres/view/"         // Détails d'un livre (lecture seule)
     );
 
     // Pages accessibles aux adhérents (lecture et réservation)
@@ -83,9 +85,15 @@ public class AuthenticationFilter implements Filter {
         String userType = (session != null) ? (String) session.getAttribute("userType") : null;
         
         if (userType == null) {
-            // Utilisateur non connecté, rediriger vers la page de connexion
-            httpResponse.sendRedirect(contextPath + "/login");
-            return;
+            // Utilisateur non connecté - vérifier si l'accès est autorisé en lecture seule
+            if (isGuestReadOnlyAllowed(path)) {
+                chain.doFilter(request, response);
+                return;
+            } else {
+                // Rediriger vers la page de connexion pour les autres pages
+                httpResponse.sendRedirect(contextPath + "/login");
+                return;
+            }
         }
 
         // Vérifier les autorisations selon le type d'utilisateur
@@ -137,6 +145,23 @@ public class AuthenticationFilter implements Filter {
                    !path.contains("/edit") && 
                    !path.contains("/delete") && 
                    !path.contains("/save");
+        }
+        
+        return false;
+    }
+
+    /**
+     * Vérifier si un utilisateur non connecté (invité) a accès à une page en lecture seule
+     */
+    private boolean isGuestReadOnlyAllowed(String path) {
+        // Autoriser uniquement la consultation du catalogue des livres (lecture seule)
+        if (path.startsWith("/livres")) {
+            // Interdire toutes les actions de modification et de réservation
+            return !path.contains("/new") && 
+                   !path.contains("/edit") && 
+                   !path.contains("/delete") && 
+                   !path.contains("/save") &&
+                   !path.contains("/reserve");
         }
         
         return false;
