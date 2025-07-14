@@ -5,7 +5,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -59,43 +58,78 @@ public class PenaliteService {
 
     public void calculPenalite(Integer idPret) throws Exception {
         Pret pret = pretRepository.findById(idPret).orElse(null);
-        Penalite penalite = null;
-        if (pret != null) {
-            FinPret finPret = finPretRepository.findByPretId(pret.getIdPret()).getLast();
-            Retour retour = retourRepository.findByPret_IdPret(pret.getIdPret());
-            if (retour !=null && finPret != null) {
-                if (retour.getDateRetour().isAfter(finPret.getDateFin())) {
-                    long retard = ChronoUnit.DAYS.between(finPret.getDateFin(), retour.getDateRetour());
-                    if (retard > 0) {
-                        Penalite lastPenalites = penaliteRepository.findByAdherant(pret.getAdherant())
-                            .stream()
-                            .sorted(Comparator.comparing(penalitee -> penalitee.getDatePenalite().plusDays(penalitee.getDuree())))
-                            .collect(Collectors.toList()).getFirst();
-                        
-                        if (lastPenalites.getDatePenalite().plusDays(lastPenalites.getDuree()).isAfter(retour.getDateRetour())) {
-                            penalite = new Penalite(pret.getAdherant(),((int)retard), retour.getDateRetour());
-                        }
-                        penalite = new Penalite(pret.getAdherant(),((int)retard), lastPenalites.getDatePenalite().plusDays(lastPenalites.getDuree()).plusDays(retard));
-                        penaliteRepository.save(penalite);
-                    }
+        if (pret == null) {
+            throw new Exception("Prêt introuvable");
+        }
+        
+        // Récupérer la date de fin du prêt
+        List<FinPret> finPrets = finPretRepository.findByPretId(pret.getIdPret());
+        if (finPrets.isEmpty()) {
+            throw new Exception("Date de fin de prêt introuvable");
+        }
+        FinPret finPret = finPrets.get(finPrets.size() - 1); // Dernière date de fin
+        
+        // Récupérer le retour
+        Retour retour = retourRepository.findByPret_IdPret(pret.getIdPret());
+        if (retour == null) {
+            throw new Exception("Retour introuvable");
+        }
+        
+        // Calculer le retard
+        if (retour.getDateRetour().isAfter(finPret.getDateFin())) {
+            long retard = ChronoUnit.DAYS.between(finPret.getDateFin(), retour.getDateRetour());
+            if (retard > 0) {
+                // Récupérer la dernière pénalité de l'adhérent
+                List<Penalite> penalitesExistantes = penaliteRepository.findByAdherant(pret.getAdherant());
+                
+                LocalDateTime datePenalite;
+                if (penalitesExistantes.isEmpty()) {
+                    // Pas de pénalité précédente, commence à la date de retour
+                    datePenalite = retour.getDateRetour();
                 } else {
-                    throw new Exception("n'a pas emprunter ou retourner de livre");
+                    // Récupérer la dernière pénalité
+                    Penalite dernierePenalite = penalitesExistantes.stream()
+                        .max(Comparator.comparing(p -> p.getDatePenalite().plusDays(p.getDuree())))
+                        .orElse(null);
+                    
+                    if (dernierePenalite != null) {
+                        LocalDateTime finDernierePenalite = dernierePenalite.getDatePenalite().plusDays(dernierePenalite.getDuree());
+                        // Si la dernière pénalité n'est pas encore terminée, on continue après
+                        if (finDernierePenalite.isAfter(retour.getDateRetour())) {
+                            datePenalite = finDernierePenalite;
+                        } else {
+                            datePenalite = retour.getDateRetour();
+                        }
+                    } else {
+                        datePenalite = retour.getDateRetour();
+                    }
                 }
-            } else {
-                throw new Exception("pret introuvable");
+                
+                // Créer la nouvelle pénalité
+                Penalite nouvellePenalite = new Penalite(pret.getAdherant(), (int)retard, datePenalite);
+                penaliteRepository.save(nouvellePenalite);
+                
+                System.out.println("Pénalité créée: " + retard + " jours à partir du " + datePenalite);
             }
         }
     }
 
     public boolean isPenalise(LocalDateTime date, Integer idAdherant){
         List<Penalite> penalites = penaliteRepository.findByAdherant(adherantRepository.findById(idAdherant).orElse(null));
-        if ( penalites == null || penalites.isEmpty()) {
+        if (penalites == null || penalites.isEmpty()) {
             return false;
         }
-        Penalite lastpenalite = penalites.stream()
-            .sorted(Comparator.comparing(penalite -> penalite.getDatePenalite().plusDays(penalite.getDuree())))
-            .collect(Collectors.toList())
-            .getFirst();
-        return lastpenalite.getDatePenalite().plusDays(lastpenalite.getDuree()).isAfter(date);
+        
+        // Récupérer la pénalité la plus récente (qui se termine le plus tard)
+        Penalite dernierePenalite = penalites.stream()
+            .max(Comparator.comparing(penalite -> penalite.getDatePenalite().plusDays(penalite.getDuree())))
+            .orElse(null);
+        
+        if (dernierePenalite == null) {
+            return false;
+        }
+        
+        LocalDateTime finPenalite = dernierePenalite.getDatePenalite().plusDays(dernierePenalite.getDuree());
+        return finPenalite.isAfter(date);
     }
 }
