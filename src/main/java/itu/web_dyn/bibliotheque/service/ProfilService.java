@@ -2,7 +2,9 @@ package itu.web_dyn.bibliotheque.service;
 
 import org.springframework.stereotype.Service;
 
+import itu.web_dyn.bibliotheque.entities.InscriptionProfil;
 import itu.web_dyn.bibliotheque.entities.Profil;
+import itu.web_dyn.bibliotheque.repository.InscriptionProfilRepository;
 import itu.web_dyn.bibliotheque.repository.ProfilRepository;
 
 import java.util.List;
@@ -13,7 +15,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class ProfilService {
     @Autowired
     private ProfilRepository profilRepository;
-
+    @Autowired
+    private InscriptionProfilRepository inscriptionProfilRepository;
 
     public Profil findById(Integer id){
         return profilRepository.findById(id).get();
@@ -27,7 +30,11 @@ public class ProfilService {
         profilRepository.save(profil);
     }
 
-    public void deleteById(Integer id) {
-        profilRepository.deleteById(id);
+    public InscriptionProfil getInscriptionProfilByProfil(Profil profil) {
+        return inscriptionProfilRepository.findAll()
+            .stream()
+            .filter(ip -> ip.getProfil().getIdProfil().equals(profil.getIdProfil()))
+            .findFirst()
+            .orElse(null);
     }
 }
