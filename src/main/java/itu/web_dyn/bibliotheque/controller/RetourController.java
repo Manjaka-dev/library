@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import itu.web_dyn.bibliotheque.entities.Retour;
+import itu.web_dyn.bibliotheque.service.PenaliteService;
 import itu.web_dyn.bibliotheque.service.PretService;
 import itu.web_dyn.bibliotheque.service.RetourService;
 import itu.web_dyn.bibliotheque.service.TypeRetourService;
@@ -29,6 +30,9 @@ public class RetourController {
 
     @Autowired
     private TypeRetourService typeRetourService;
+
+    @Autowired
+    private PenaliteService penaliteService;
 
     // Liste des retours
     @GetMapping
@@ -49,12 +53,33 @@ public class RetourController {
 
     // Sauvegarde d'un retour
     @PostMapping("/save")
-    public String saveRetour(@ModelAttribute Retour retour) {
-        if (retour.getDateRetour() == null) {
-            retour.setDateRetour(LocalDateTime.now());
+    public String saveRetour(@ModelAttribute Retour retour, Model model) {
+        try {
+            if (retour.getDateRetour() == null) {
+                retour.setDateRetour(LocalDateTime.now());
+            }
+            
+            // Sauvegarder le retour
+            retourService.save(retour);
+            
+            // Calculer automatiquement les pénalités
+            if (retour.getPret() != null) {
+                try {
+                    penaliteService.calculPenalite(retour.getPret().getIdPret());
+                } catch (Exception e) {
+                    System.err.println("Erreur lors du calcul de pénalité: " + e.getMessage());
+                    // On continue même si le calcul de pénalité échoue
+                }
+            }
+            
+            return "redirect:/retours";
+        } catch (Exception e) {
+            model.addAttribute("error", "Erreur lors de la sauvegarde: " + e.getMessage());
+            model.addAttribute("retour", retour);
+            model.addAttribute("prets", pretService.findAll());
+            model.addAttribute("typesRetour", typeRetourService.findAll());
+            return "retour/form";
         }
-        retourService.save(retour);
-        return "redirect:/retours";
     }
 
     // Formulaire d'édition

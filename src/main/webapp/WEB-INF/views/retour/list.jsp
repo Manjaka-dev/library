@@ -69,7 +69,7 @@
                                                         </span>
                                                     </td>
                                                     <td>
-                                                        <span class="badge bg-secondary">${retour.typeRetour.nom}</span>
+                                                        <span class="badge bg-secondary">${retour.typeRetour.nomTypeRetour}</span>
                                                     </td>
                                                     <td>
                                                         <div class="btn-group btn-group-sm" role="group">

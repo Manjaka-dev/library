@@ -60,7 +60,7 @@
                                     <div class="col-md-6">
                                         <h6 class="text-muted">Type de Retour</h6>
                                         <p>
-                                            <span class="badge bg-secondary fs-6">${retour.typeRetour.nom}</span>
+                                            <span class="badge bg-secondary fs-6">${retour.typeRetour.nomTypeRetour}</span>
                                         </p>
                                     </div>
                                     <div class="col-md-6">
