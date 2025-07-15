@@ -62,10 +62,11 @@ public class RetourController {
             // Sauvegarder le retour
             retourService.save(retour);
             
-            // Calculer automatiquement les pénalités
+            // Calculer automatiquement les pénalités en jours ouvrables
             if (retour.getPret() != null) {
                 try {
-                    penaliteService.calculPenalite(retour.getPret().getIdPret());
+                    // Utiliser le calcul en jours ouvrables (true) ou jours calendaires (false)
+                    penaliteService.calculPenaliteAvecJoursOuvrables(retour.getPret().getIdPret(), true);
                 } catch (Exception e) {
                     System.err.println("Erreur lors du calcul de pénalité: " + e.getMessage());
                     // On continue même si le calcul de pénalité échoue

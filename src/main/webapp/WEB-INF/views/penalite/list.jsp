@@ -20,6 +20,16 @@
                     </div>
                     <div class="card-body">
                         <!-- Messages -->
+                        <c:if test="${param.success == 'penalite-calculee-ouvrables'}">
+                            <div class="alert alert-success" role="alert">
+                                Pénalité calculée avec succès (en jours ouvrables) !
+                            </div>
+                        </c:if>
+                        <c:if test="${param.success == 'penalite-calculee-calendaires'}">
+                            <div class="alert alert-success" role="alert">
+                                Pénalité calculée avec succès (en jours calendaires) !
+                            </div>
+                        </c:if>
                         <c:if test="${param.success == 'penalite-calculee'}">
                             <div class="alert alert-success" role="alert">
                                 Pénalité calculée avec succès !
@@ -30,6 +40,16 @@
                                 Erreur : ${param.error}
                             </div>
                         </c:if>
+
+                        <!-- Actions -->
+                        <div class="mb-3">
+                            <a href="/jours-ferier" class="btn btn-info">
+                                <i class="fas fa-calendar-alt"></i> Jours Fériés
+                            </a>
+                            <a href="/retours" class="btn btn-secondary">
+                                <i class="fas fa-undo"></i> Retours
+                            </a>
+                        </div>
 
                         <!-- Statistiques -->
                         <div class="row mb-4">

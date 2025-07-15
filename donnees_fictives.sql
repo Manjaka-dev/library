@@ -455,3 +455,30 @@ UNION ALL SELECT
 
 -- Message de fin
 SELECT 'Script de données fictives exécuté avec succès !' as Message;
+
+-- ===== JOURS FÉRIÉS =====
+
+-- Jours fériés fixes (récurrents chaque année)
+INSERT INTO jour_ferier (nom_jour, date_ferier, annee, recurrent) VALUES
+('Nouvel An', '2025-01-01', 2025, true),
+('Fête du Travail', '2025-05-01', 2025, true),
+('Fête de la Victoire', '2025-05-08', 2025, true),
+('Fête Nationale', '2025-07-14', 2025, true),
+('Assomption', '2025-08-15', 2025, true),
+('Toussaint', '2025-11-01', 2025, true),
+('Armistice', '2025-11-11', 2025, true),
+('Noël', '2025-12-25', 2025, true);
+
+-- Jours fériés variables pour 2025 (non récurrents)
+INSERT INTO jour_ferier (nom_jour, date_ferier, annee, recurrent) VALUES
+('Lundi de Pâques', '2025-04-21', 2025, false),
+('Ascension', '2025-05-29', 2025, false),
+('Lundi de Pentecôte', '2025-06-09', 2025, false);
+
+-- Jours fériés variables pour 2026 (exemples)
+INSERT INTO jour_ferier (nom_jour, date_ferier, annee, recurrent) VALUES
+('Lundi de Pâques', '2026-04-06', 2026, false),
+('Ascension', '2026-05-14', 2026, false),
+('Lundi de Pentecôte', '2026-05-25', 2026, false);
+
+-- ===== DONNÉES DE BASE =====

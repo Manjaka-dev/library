@@ -1,12 +1,8 @@
 package itu.web_dyn.bibliotheque.test;
 
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.stereotype.Component;
-
 import itu.web_dyn.bibliotheque.entities.Adherant;
 import itu.web_dyn.bibliotheque.entities.Penalite;
 import itu.web_dyn.bibliotheque.service.AdherantService;
@@ -87,9 +83,11 @@ public class PenaliteSystemTest implements CommandLineRunner {
         System.out.println("\n--- Test 3: Calcul automatique ---");
         
         try {
-            // Simuler un calcul pour le prêt ID 1 (s'il existe)
-            System.out.println("⚠ Test de calcul automatique désactivé pour éviter les erreurs");
-            System.out.println("  Pour tester, utilisez l'interface web ou activez manuellement");
+            // Test avec jours ouvrables
+            System.out.println("⚠ Test de calcul automatique avec jours ouvrables");
+            System.out.println("  - Calcul en jours ouvrables (excluant weekends et jours fériés)");
+            System.out.println("  - Pour tester, utilisez l'interface web des retours");
+            System.out.println("  - Le système calculera automatiquement les pénalités en jours ouvrables");
             
         } catch (Exception e) {
             System.out.println("✗ Erreur lors du calcul: " + e.getMessage());

@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import itu.web_dyn.bibliotheque.entities.Penalite;
 import itu.web_dyn.bibliotheque.service.AdherantService;
 import itu.web_dyn.bibliotheque.service.PenaliteService;
-import itu.web_dyn.bibliotheque.service.PretService;
 import jakarta.servlet.http.HttpSession;
 
 @Controller
@@ -28,9 +27,6 @@ public class PenaliteController {
 
     @Autowired
     private AdherantService adherantService;
-
-    @Autowired
-    private PretService pretService;
 
     // Liste des pénalités
     @GetMapping
@@ -63,15 +59,18 @@ public class PenaliteController {
 
     // Calculer pénalité pour un prêt
     @PostMapping("/calculer")
-    public String calculerPenalite(@RequestParam Integer idPret, HttpSession session) {
+    public String calculerPenalite(@RequestParam Integer idPret, 
+                                  @RequestParam(defaultValue = "true") Boolean joursOuvrables,
+                                  HttpSession session) {
         String userType = (String) session.getAttribute("userType");
         if (!"admin".equals(userType)) {
             return "redirect:/login";
         }
         
         try {
-            penaliteService.calculPenalite(idPret);
-            return "redirect:/penalites?success=penalite-calculee";
+            penaliteService.calculPenaliteAvecJoursOuvrables(idPret, joursOuvrables);
+            String message = joursOuvrables ? "penalite-calculee-ouvrables" : "penalite-calculee-calendaires";
+            return "redirect:/penalites?success=" + message;
         } catch (Exception e) {
             return "redirect:/penalites?error=" + e.getMessage();
         }
