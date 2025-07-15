@@ -23,6 +23,11 @@ public class TestController {
         return "test-penalites";
     }
     
+    @GetMapping("/test-api-livres")
+    public String testApiLivres() {
+        return "test-api-livres";
+    }
+    
     @PostMapping("/test-jours-ouvrables")
     public String testJoursOuvrables(@RequestParam String dateDebut, 
                                    @RequestParam String dateFin, 

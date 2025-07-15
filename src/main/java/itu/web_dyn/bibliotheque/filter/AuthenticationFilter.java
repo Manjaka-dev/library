@@ -38,7 +38,8 @@ public class AuthenticationFilter implements Filter {
         "/static/",
         "/error",
         "/livres",              // Consultation du catalogue (lecture seule)
-        "/livres/view/"         // Détails d'un livre (lecture seule)
+        "/livres/view/",        // Détails d'un livre (lecture seule)
+        "/api/"                 // API REST endpoints
     );
 
     // Pages accessibles aux adhérents (lecture et réservation)
