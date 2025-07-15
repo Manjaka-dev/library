@@ -1,12 +1,8 @@
 package itu.web_dyn.bibliotheque.test;
 
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.stereotype.Component;
-
 import itu.web_dyn.bibliotheque.entities.Adherant;
 import itu.web_dyn.bibliotheque.entities.Penalite;
 import itu.web_dyn.bibliotheque.service.AdherantService;

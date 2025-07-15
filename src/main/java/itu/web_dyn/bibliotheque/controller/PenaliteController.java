@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import itu.web_dyn.bibliotheque.entities.Penalite;
 import itu.web_dyn.bibliotheque.service.AdherantService;
 import itu.web_dyn.bibliotheque.service.PenaliteService;
-import itu.web_dyn.bibliotheque.service.PretService;
 import jakarta.servlet.http.HttpSession;
 
 @Controller
@@ -28,9 +27,6 @@ public class PenaliteController {
 
     @Autowired
     private AdherantService adherantService;
-
-    @Autowired
-    private PretService pretService;
 
     // Liste des pénalités
     @GetMapping
