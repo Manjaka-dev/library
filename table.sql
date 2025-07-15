@@ -157,6 +157,14 @@ CREATE TABLE categorie_livre(
    FOREIGN KEY(id_categorie) REFERENCES categorie(id_categorie)
 );
 
+CREATE TABLE jour_ferier(
+   id_jour_ferier SERIAL PRIMARY KEY,
+   nom_jour VARCHAR(100) NOT NULL,
+   date_ferier DATE NOT NULL,
+   annee INT NOT NULL,
+   recurrent BOOLEAN DEFAULT FALSE
+);
+
 CREATE TABLE quota_type_pret(
    id_profil INT,
    id_type_pret INT,
