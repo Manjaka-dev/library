@@ -28,4 +28,12 @@ public interface ReservationRepository extends JpaRepository<Reservation, Intege
     // Méthode pour trouver les réservations dans une période donnée
     @Query("SELECT r FROM Reservation r WHERE r.dateDeReservation BETWEEN :dateDebut AND :dateFin")
     List<Reservation> findByDateDeReservationBetween(@Param("dateDebut") LocalDateTime dateDebut, @Param("dateFin") LocalDateTime dateFin);
+    
+    // Compter les réservations actives (En attente ou Confirmée) d'un adhérant
+    @Query("SELECT COUNT(r) FROM Reservation r WHERE r.adherant.idAdherant = :adherantId AND r.statut.nomStatut IN ('En attente', 'Confirmée')")
+    int countReservationsActivesByAdherant(@Param("adherantId") Integer adherantId);
+    
+    // Trouver les réservations actives d'un adhérant
+    @Query("SELECT r FROM Reservation r WHERE r.adherant.idAdherant = :adherantId AND r.statut.nomStatut IN ('En attente', 'Confirmée')")
+    List<Reservation> findReservationsActivesByAdherant(@Param("adherantId") Integer adherantId);
 }
