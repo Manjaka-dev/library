@@ -1,7 +1,6 @@
 package itu.web_dyn.bibliotheque.service;
 
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -35,6 +34,9 @@ public class PenaliteService {
 
     @Autowired
     private AdherantRepository adherantRepository;
+    
+    @Autowired
+    private JourFerierService jourFerierService;
 
     public List<Penalite> findAll() {
         return penaliteRepository.findAll();
@@ -75,10 +77,15 @@ public class PenaliteService {
             throw new Exception("Retour introuvable");
         }
         
-        // Calculer le retard
+        // Calculer le retard en jours ouvrables
         if (retour.getDateRetour().isAfter(finPret.getDateFin())) {
-            long retard = ChronoUnit.DAYS.between(finPret.getDateFin(), retour.getDateRetour());
-            if (retard > 0) {
+            // Calculer le retard en jours ouvrables (exclut weekends et jours fériés)
+            long retardJoursOuvrables = jourFerierService.calculerJoursOuvrables(
+                finPret.getDateFin().toLocalDate(), 
+                retour.getDateRetour().toLocalDate()
+            );
+            
+            if (retardJoursOuvrables > 0) {
                 // Récupérer la dernière pénalité de l'adhérent
                 List<Penalite> penalitesExistantes = penaliteRepository.findByAdherant(pret.getAdherant());
                 
@@ -106,10 +113,83 @@ public class PenaliteService {
                 }
                 
                 // Créer la nouvelle pénalité
+                Penalite nouvellePenalite = new Penalite(pret.getAdherant(), (int)retardJoursOuvrables, datePenalite);
+                penaliteRepository.save(nouvellePenalite);
+                
+                System.out.println("Pénalité créée: " + retardJoursOuvrables + " jours ouvrables à partir du " + datePenalite);
+            }
+        }
+    }
+
+    /**
+     * Calcule les pénalités en tenant compte des jours ouvrables uniquement
+     * @param idPret ID du prêt
+     * @param calculerEnJoursOuvrables true pour calculer en jours ouvrables, false pour jours calendaires
+     * @throws Exception si le prêt n'est pas trouvé
+     */
+    public void calculPenaliteAvecJoursOuvrables(Integer idPret, boolean calculerEnJoursOuvrables) throws Exception {
+        Pret pret = pretRepository.findById(idPret).orElse(null);
+        if (pret == null) {
+            throw new Exception("Prêt introuvable");
+        }
+        
+        // Récupérer la date de fin du prêt
+        List<FinPret> finPrets = finPretRepository.findByPretId(pret.getIdPret());
+        if (finPrets.isEmpty()) {
+            throw new Exception("Date de fin de prêt introuvable");
+        }
+        FinPret finPret = finPrets.get(finPrets.size() - 1);
+        
+        // Récupérer le retour
+        Retour retour = retourRepository.findByPret_IdPret(pret.getIdPret());
+        if (retour == null) {
+            throw new Exception("Retour introuvable");
+        }
+        
+        // Calculer le retard
+        if (retour.getDateRetour().isAfter(finPret.getDateFin())) {
+            long retard;
+            String typeCalcul;
+            
+            if (calculerEnJoursOuvrables) {
+                // Calculer en jours ouvrables seulement
+                retard = jourFerierService.calculerJoursOuvrables(
+                    finPret.getDateFin().toLocalDate(), 
+                    retour.getDateRetour().toLocalDate()
+                );
+                typeCalcul = "jours ouvrables";
+            } else {
+                // Calculer en jours calendaires (ancien comportement)
+                retard = java.time.temporal.ChronoUnit.DAYS.between(finPret.getDateFin(), retour.getDateRetour());
+                typeCalcul = "jours calendaires";
+            }
+            
+            if (retard > 0) {
+                // Récupérer la dernière pénalité de l'adhérent
+                List<Penalite> penalitesExistantes = penaliteRepository.findByAdherant(pret.getAdherant());
+                
+                LocalDateTime datePenalite;
+                if (penalitesExistantes.isEmpty()) {
+                    datePenalite = retour.getDateRetour();
+                } else {
+                    Penalite dernierePenalite = penalitesExistantes.stream()
+                        .max(Comparator.comparing(p -> p.getDatePenalite().plusDays(p.getDuree())))
+                        .orElse(null);
+                    
+                    if (dernierePenalite != null) {
+                        LocalDateTime finDernierePenalite = dernierePenalite.getDatePenalite().plusDays(dernierePenalite.getDuree());
+                        datePenalite = finDernierePenalite.isAfter(retour.getDateRetour()) ? 
+                            finDernierePenalite : retour.getDateRetour();
+                    } else {
+                        datePenalite = retour.getDateRetour();
+                    }
+                }
+                
+                // Créer la nouvelle pénalité
                 Penalite nouvellePenalite = new Penalite(pret.getAdherant(), (int)retard, datePenalite);
                 penaliteRepository.save(nouvellePenalite);
                 
-                System.out.println("Pénalité créée: " + retard + " jours à partir du " + datePenalite);
+                System.out.println("Pénalité créée: " + retard + " " + typeCalcul + " à partir du " + datePenalite);
             }
         }
     }
