@@ -4,13 +4,15 @@ public class ExemplaireDTO {
     private Integer idExemplaire;
     private Integer idLivre;
     private String titreLivre;
+    private Boolean disponible;
     
     public ExemplaireDTO() {}
     
-    public ExemplaireDTO(Integer idExemplaire, Integer idLivre, String titreLivre) {
+    public ExemplaireDTO(Integer idExemplaire, Integer idLivre, String titreLivre, Boolean disponible) {
         this.idExemplaire = idExemplaire;
         this.idLivre = idLivre;
         this.titreLivre = titreLivre;
+        this.disponible = disponible;
     }
     
     // Getters et Setters
@@ -36,5 +38,13 @@ public class ExemplaireDTO {
     
     public void setTitreLivre(String titreLivre) {
         this.titreLivre = titreLivre;
+    }
+    
+    public Boolean getDisponible() {
+        return disponible;
+    }
+    
+    public void setDisponible(Boolean disponible) {
+        this.disponible = disponible;
     }
 }

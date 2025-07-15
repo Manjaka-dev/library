@@ -1,5 +1,6 @@
 package itu.web_dyn.bibliotheque.controller.api;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -103,6 +104,11 @@ public class LivreApiController {
             .map(this::convertirExemplaire)
             .collect(Collectors.toList());
         
+        // Calculer le nombre d'exemplaires disponibles
+        Integer nombreDisponibles = (int) exemplairesDTO.stream()
+            .filter(dto -> dto.getDisponible())
+            .count();
+        
         return new LivreAvecExemplairesDTO(
             livre.getIdLivre(),
             livre.getTitre(),
@@ -119,7 +125,8 @@ public class LivreApiController {
                     .map(cat -> cat.getNomCategorie())
                     .collect(Collectors.toList()) : null,
             exemplairesDTO,
-            exemplairesDTO.size()
+            exemplairesDTO.size(),
+            nombreDisponibles
         );
     }
     
@@ -127,10 +134,30 @@ public class LivreApiController {
      * Convertir un exemplaire en DTO
      */
     private ExemplaireDTO convertirExemplaire(Exemplaire exemplaire) {
-        return new ExemplaireDTO(
-            exemplaire.getIdExemplaire(),
-            exemplaire.getLivre().getIdLivre(),
-            exemplaire.getLivre().getTitre()
-        );
+        try {
+            // Vérifier la disponibilité de l'exemplaire à partir de maintenant
+            Boolean disponible = exemplaireService.isExemplaireDisponible(
+                exemplaire.getIdExemplaire(), 
+                LocalDateTime.now()
+            );
+            
+            return new ExemplaireDTO(
+                exemplaire.getIdExemplaire(),
+                exemplaire.getLivre() != null ? exemplaire.getLivre().getIdLivre() : null,
+                exemplaire.getLivre() != null ? exemplaire.getLivre().getTitre() : "Titre non disponible",
+                disponible
+            );
+        } catch (Exception e) {
+            System.err.println("Erreur lors de la conversion de l'exemplaire " + exemplaire.getIdExemplaire() + ": " + e.getMessage());
+            e.printStackTrace();
+            
+            // Retourner un DTO par défaut en cas d'erreur
+            return new ExemplaireDTO(
+                exemplaire.getIdExemplaire(),
+                exemplaire.getLivre() != null ? exemplaire.getLivre().getIdLivre() : null,
+                exemplaire.getLivre() != null ? exemplaire.getLivre().getTitre() : "Titre non disponible",
+                false // Considérer comme non disponible en cas d'erreur
+            );
+        }
     }
 }

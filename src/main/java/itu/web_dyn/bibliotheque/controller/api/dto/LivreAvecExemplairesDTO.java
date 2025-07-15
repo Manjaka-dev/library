@@ -16,6 +16,7 @@ public class LivreAvecExemplairesDTO {
     private List<String> categories;
     private List<ExemplaireDTO> exemplaires;
     private Integer nombreExemplaires;
+    private Integer nombreExemplairesDisponibles;
     
     public LivreAvecExemplairesDTO() {}
     
@@ -23,7 +24,7 @@ public class LivreAvecExemplairesDTO {
                                    Integer anneePublication, String synopsis, Integer nbPage, 
                                    Integer ageRequis, String auteur, String editeur, 
                                    List<String> categories, List<ExemplaireDTO> exemplaires, 
-                                   Integer nombreExemplaires) {
+                                   Integer nombreExemplaires, Integer nombreExemplairesDisponibles) {
         this.idLivre = idLivre;
         this.titre = titre;
         this.isbn = isbn;
@@ -37,6 +38,7 @@ public class LivreAvecExemplairesDTO {
         this.categories = categories;
         this.exemplaires = exemplaires;
         this.nombreExemplaires = nombreExemplaires;
+        this.nombreExemplairesDisponibles = nombreExemplairesDisponibles;
     }
     
     // Getters et Setters
@@ -142,5 +144,13 @@ public class LivreAvecExemplairesDTO {
     
     public void setNombreExemplaires(Integer nombreExemplaires) {
         this.nombreExemplaires = nombreExemplaires;
+    }
+    
+    public Integer getNombreExemplairesDisponibles() {
+        return nombreExemplairesDisponibles;
+    }
+    
+    public void setNombreExemplairesDisponibles(Integer nombreExemplairesDisponibles) {
+        this.nombreExemplairesDisponibles = nombreExemplairesDisponibles;
     }
 }
